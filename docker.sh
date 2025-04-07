@@ -29,7 +29,7 @@ fi
 
 # SSH KEYS: set up ssh keys
 if [ -d "~/.ssh" ]; then mkdir ~/.ssh; fi
-ssh-keygen -t ed25519 -C $(hostname) -f ~/.ssh/ed25519
+ssh-keygen -t ed25519 -C $(hostname) -f ~/.ssh/id_ed25519
 echo "== ADD THIS KEY TO GITHUB ========"
 cat ~/.ssh/ed25519.pub
 
