@@ -18,6 +18,7 @@ TODO: Plan the project at a high-level
 ## Practice Goals
 
 Develop software as constellations of containerized micro-services
+
 [X] Stand up a Docker container server on a standalone machine
 [ ] Host a container with a PyPI mirror for select packages
 [ ] Host a container with a Postgres database
@@ -25,15 +26,18 @@ Develop software as constellations of containerized micro-services
 [ ] If time permits: Index databases with Elasticsearch
 
 Process data using distributed approaches (use a mix of CPU & GPU)
+
 [ ] Refine data using PySpark
 [ ] Refine data using Dask
 [ ] Refine data using Multiprocessing + Python
 
 Analyze graph data using graph and deep learning tools
+
 [ ] Analyze graphs with iGraph
 [ ] Model graphs with PyTorch Geometric
 
 Present the results using visualization tools
+
 [ ] Build webpages with Plotly figures
 [ ] Build dashboards with Tableau + TabPy
 
