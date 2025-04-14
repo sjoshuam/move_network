@@ -9,37 +9,55 @@ tasks.
 I do projects like this to keep my skills sharp.  See the bottom section for
 my practice goals.
 
+## Inventory of scripts
 
-## Project Milestones
+TODO: Add descriptions
 
-TODO: Plan the project at a high-level
+10. 10_make_services - TODO
+- 11_docker_server - TODO
 
+20. 20_refine_data
+-
+
+30. 30_analyze_data
+-
+
+40. 40_serve_results
+-
 
 ## Practice Goals
 
-Develop software as constellations of containerized micro-services
-- [X] Stand up a Docker container server on a standalone machine
-- [ ] Host a container with a PyPI mirror for select packages
-- [ ] Host a container with a Postgres database
-- [ ] Host a container with a Neo4j database
-- [ ] If time permits: Index databases with Elasticsearch
+0. Organize the project
+- 01 Execute the project end-to-end
 
-Process data using distributed approaches (use a mix of CPU & GPU)
-- [ ] Refine data using PySpark
-- [ ] Refine data using Dask
-- [ ] Refine data using Multiprocessing + Python
+10. Set up a constellations of containerized micro-services
+- [x] 11 Stand up a Docker container server on a standalone machine
+- [ ] 12 Host a container with a PyPI mirror for select packages
+- [ ] 13 Host a container with a Postgres database
+- [ ] 14 Host a container with a Neo4j database
+- [ ] 15 If time permits: Index databases with Elasticsearch
 
-Analyze graph data using graph and deep learning tools
-- [ ] Analyze graphs with iGraph
-- [ ] Model graphs with PyTorch Geometric
+20. Process data using distributed approaches
+- [ ] 21 Acquire data
+- [ ] 22 Refine data using PySpark
+- [ ] 23 Refine data using Dask
+- [ ] 24 Refine data using Multiprocessing + Pandas
 
-Present the results using visualization tools
-- [ ] Build webpages with Plotly figures
-- [ ] Build dashboards with Tableau + TabPy
+30. Analyze graph data using graph and deep learning tools
+- [ ] 31 Analyze data with PySpark
+- [ ] 32 Analyze data with Dask
+- [ ] 33 Analyze graphs with iGraph
+- [ ] 34 Model graphs with PyTorch Geometric
+
+40. Present the results using visualization tools
+- [ ] 41 Build webpages with Plotly figures
+- [ ] 42 Build dashboards with Tableau + TabPy
 
 
-## Sources
-[IRS Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data)
+## Key links
+- [IRS Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data)
 
+## Reminders 
+- See Markdown preview Ctrl+k V
 
 ##########==========##########==========##########==========##########==========

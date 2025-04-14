@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo -e "\nWARNING: This script has been tested piece by piece,
+but not all the way through. Execute with caution.\n"
+
 ## TIMEZONE: set the timezone
 timedatectl set-timezone America/New_York
 
@@ -31,7 +34,7 @@ fi
 if [ -d "~/.ssh" ]; then mkdir ~/.ssh; fi
 ssh-keygen -t ed25519 -C $(hostname) -f ~/.ssh/id_ed25519
 echo "== ADD THIS KEY TO GITHUB ========"
-cat ~/.ssh/ed25519.pub
+cat ~/.ssh/id_ed25519.pub
 
     #### notes
     ## ssh-keygen -t rsa -b 4096 -C $(hostname) -f ~/.ssh/ed25519
