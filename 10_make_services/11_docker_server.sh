@@ -52,6 +52,9 @@ apt-get install ca-certificates curl -y # web untilities
     ## basic loop: for iter in a b c; do echo iter; done
 
 
+## GIT
+if [ -d "~/code" ]; then mkdir ~/code; fi
+
 ## DOCKER: install docker
 curl -fsSL https://get.docker.com -o install-docker.sh
 sh install-docker.sh && rm install-docker.sh
@@ -80,3 +83,8 @@ docker pull elasticsearch:8.17.4 ## search engine
     ## check status: systemctl --user status docker
     ## stop docker: systemctl --user stop docker
     ## elasticsearch: docker pull elasticsearch:8.17 ## search engine
+
+  ## CONTAINERS: install docker containers
+
+  docker build -t 12_devpi.docker
+  

@@ -28,14 +28,15 @@ TODO: Add descriptions
 ## Practice Goals
 
 0. Organize the project
-- 01 Execute the project end-to-end
+- [ ] 01 Execute the project end-to-end
 
 10. Set up a constellations of containerized micro-services
 - [x] 11 Stand up a Docker container server on a standalone machine
 - [ ] 12 Host a container with a PyPI mirror for select packages
-- [ ] 13 Host a container with a Postgres database
-- [ ] 14 Host a container with a Neo4j database
-- [ ] 15 If time permits: Index databases with Elasticsearch
+- [ ] 13 Host a container set up to be a Python development environment 
+- [ ] 14 Host a container with a Postgres database
+- [ ] 15 Host a container with a Neo4j database
+- [ ] 16 Host a container and index databases with Elasticsearch
 
 20. Process data using distributed approaches
 - [ ] 21 Acquire data
@@ -52,7 +53,7 @@ TODO: Add descriptions
 40. Present the results using visualization tools
 - [ ] 41 Build webpages with Plotly figures
 - [ ] 42 Build dashboards with Tableau + TabPy
-
+- [ ] 43 Build webpage with a containerized server backend
 
 ## Key links
 - [IRS Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data)
