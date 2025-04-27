@@ -41,7 +41,7 @@ apt-get install ca-certificates curl -y # web untilities
 
 
 ## DIRECTORIES: create a standard directory for code
-if [ ! -d "$HOME/code" ]; then echo "Making code directory" mkdir $HOME/code; fi
+if [ ! -d "$HOME/code" ]; then echo "Making code directory" && mkdir $HOME/code; fi
 
 
 ### REMINDERS: Misc.
