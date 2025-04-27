@@ -14,7 +14,9 @@ my practice goals.
 TODO: Add descriptions
 
 10. 10_make_services - TODO
-- 11_docker_server - TODO
+- 11_docker_server - reminder code for setting up a remote docker server; may not run cleanly all the way through
+- 11_unix_setup.sh - generic unix set up script for execution in docker containers
+- 12_devpi.docker - sets up a containerized PyPI mirror using devpi
 
 20. 20_refine_data
 -
