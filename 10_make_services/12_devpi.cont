@@ -10,6 +10,7 @@ EXPOSE 22
 ## install devpi
 FROM python:3:13
 WORKDIR $HOME/code
-COPY 12_devpi.sh
+COPY 12_devpi.sh 12_devpi.sh
+COPY .password.txt .password.txt
 CMD ["bash", "code/12_devpi.sh"]
 EXPOSE 3141
