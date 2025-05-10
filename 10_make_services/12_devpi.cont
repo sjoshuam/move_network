@@ -1,16 +1,8 @@
 
-## Set up a Unix/Python image
-FROM python:3:13
-WORKDIR $HOME
-COPY 11_unix_setup.sh 11_unix_setup.sh
-CMD ["bash", "11_unix_setup.sh"]
-EXPOSE 22
-
-
 ## install devpi
-FROM python:3:13
-WORKDIR $HOME/code
+FROM ubuntu:24.04
+WORKDIR $HOME
 COPY 12_devpi.sh 12_devpi.sh
 COPY .password.txt .password.txt
-CMD ["bash", "code/12_devpi.sh"]
+CMD ["bash", "12_devpi.sh"]
 EXPOSE 3141

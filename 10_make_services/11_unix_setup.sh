@@ -5,27 +5,22 @@ timedatectl set-timezone America/New_York
 
 
 ## UPGRADE: apply all updates
-apt-get update
+apt-get update -y
 apt-get dist-upgrade -y
 apt-get autoremove -y
 apt-get autoclean -y
 
 
-## generate ssh keys
-if [ ! -d "$HOME/.ssh" ]; then mkdir $HOME/.ssh; fi
-ssh-keygen -t ed25519 -C $(hostname) -f $HOME/.ssh/id_ed25519
-
-    #### notes
-    ## get public key: cat $HOME/.ssh/id_ed25519.pub
-    ## make an rsa key: ssh-keygen -t rsa -b 4096 -C $(hostname) -f $HOME/.ssh/id_sa
-
-
-## SSH SERVER: set up ssh server
+## generate ssh keys and set up server
 apt-get install openssh-server -y
+if [ ! -d "$HOME/.ssh" ]; then mkdir $HOME/.ssh; fi
+ssh-keygen -t ed25519 -C $(hostname) -f $HOME/.ssh/id_ed25519 -N ""
 systemctl start ssh
 systemctl enable ssh
 
     #### notes
+    ## get public key: cat $HOME/.ssh/id_ed25519.pub
+    ## make an rsa key: ssh-keygen -t rsa -b 4096 -C $(hostname) -f $HOME/.ssh/id_sa
     ## mac: system preferences > sharing > remote login
     ## Check server status: systemctl status ssh
     ## Shut down server: systemctl stop ssh
@@ -38,6 +33,7 @@ cp $HOME/.bashrc_backup $HOME/.bashrc
 
 ## UTILITIES: install various useful software
 apt-get install ca-certificates curl -y # web untilities
+apt-get install git -y # git
 
 
 ## DIRECTORIES: create a standard directory for code
