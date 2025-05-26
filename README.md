@@ -1,66 +1,29 @@
 # move_network
 
-IRS provides data showing how many people moves from each county to each county
-for each year between 2011 and 2022. This project trains PyTorch
-Geometric models to predict each year's flow, primarily using Census and
-geographic characteristics.  See project milestones for a list of major
-tasks.
+IRS provides data showing how many people moved between counties
+for each year between 2011 and 2022. This project examines movement
+patterns, projects future trends and infers policy recommendations.
 
-I do projects like this to keep my skills sharp.  See the bottom section for
-my practice goals.
+I've structured this project to meet all of my 2025 skill development
+goals.  This [Kanban Board](https://github.com/users/sjoshuam/projects/3)
+tracks the planned work items in the plan.  The list below summarizes
+the plan's four major objectives:
 
-## Inventory of scripts
+0. Ensure that the project meets all training goals, and is packaged
+to enable easy orchestration and start-to-finish execution with few
+commands. Python, Prefect.
+1. Stand up a constellation of containerized micro-services to support
+the project, mimicking a production server environment as closely as
+practical. Key tools: Unix Shell, Podman, Postgres, Neo4j.
+2. Acquire and refine data. Practice doing distributed data processing
+using several different approaches.  Key tools: PySpark, Dask.
+3. Analyze, model, and predict movement between US counties over time.
+Practice using graph analytics and deep learning to gain insights. Key
+tools: iGraph, PyTorch Geometric.
+4. Communicate findings and recommendations using several different
+information dashboard approaches. Practice visualizing data and making
+technically-derived insights intuitive.  Key tools:  Plotly, HTML,
+Tableau, TabPy, Nginx.
 
-TODO: Add descriptions
-
-10. 10_make_services - TODO
-- 11_docker_server - reminder code for setting up a remote docker server; may not run cleanly all the way through
-- 11_unix_setup.sh - generic unix set up script for execution in docker containers
-- 12_devpi.docker - sets up a containerized PyPI mirror using devpi
-
-20. 20_refine_data
--
-
-30. 30_analyze_data
--
-
-40. 40_serve_results
--
-
-## Practice Goals
-
-0. Organize the project
-- [ ] 01 Execute the project end-to-end
-
-10. Set up a constellations of containerized micro-services
-- [x] 11 Stand up a Docker container server on a standalone machine
-- [ ] 12 Host a container with a PyPI mirror for select packages
-- [ ] 13 Host a container set up to be a Python development environment 
-- [ ] 14 Host a container with a Postgres database
-- [ ] 15 Host a container with a Neo4j database
-- [ ] 16 Host a container and index databases with Elasticsearch
-
-20. Process data using distributed approaches
-- [ ] 21 Acquire data
-- [ ] 22 Refine data using PySpark
-- [ ] 23 Refine data using Dask
-- [ ] 24 Refine data using Multiprocessing + Pandas
-
-30. Analyze graph data using graph and deep learning tools
-- [ ] 31 Analyze data with PySpark
-- [ ] 32 Analyze data with Dask
-- [ ] 33 Analyze graphs with iGraph
-- [ ] 34 Model graphs with PyTorch Geometric
-
-40. Present the results using visualization tools
-- [ ] 41 Build webpages with Plotly figures
-- [ ] 42 Build dashboards with Tableau + TabPy
-- [ ] 43 Build webpage with a containerized server backend
-
-## Key links
-- [IRS Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data)
-
-## Reminders 
-- See Markdown preview Ctrl+k V
 
 ##########==========##########==========##########==========##########==========
