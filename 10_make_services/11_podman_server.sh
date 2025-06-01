@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## install postman
+## install podman
 apt-get -y install podman
 
 ## download useful images

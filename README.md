@@ -27,7 +27,7 @@ information dashboard approaches. Practice visualizing data and making
 technically-derived insights intuitive.  Key tools:  Plotly*, HTML*,
 Tableau, TabPy, Nginx.
 
-* Asterisks indicates the highest-priority items.
+*Asterisks indicates the highest-priority items.
 
 
 ##########==========##########==========##########==========##########==========

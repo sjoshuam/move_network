@@ -39,6 +39,10 @@ apt-get install git -y # git
 ## DIRECTORIES: create a standard directory for code
 if [ ! -d "$HOME/code" ]; then echo "Making code directory" && mkdir $HOME/code; fi
 
+## PYTHON:  install Python
+apt-get install python3.12 -y
+apt-get install python3.12-venv -y
+
 
 ### REMINDERS: Misc.
     ## basic loop: for iter in a b c; do echo iter; done
