@@ -13,30 +13,13 @@ be refreshed with future years.
 
 ## load libraries
 import pandas as pd
-import warnings, requests, os, multiprocessing
-
+import requests
+import warnings, os, datetime
 
 ## load setting
 param = dict()
 
-########## BUILD TOP-LEVEL FUNCTION AND CLASS INTEGRATION
-
-## define data classes
-
-class MoveData:
-    '''TODO'''
-
-    def __init__(self):
-        pass
-
-
-
-
-## define top-level function
-
-
-
-
+##########==========##########==========##########==========##########==========##########==========
 ########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
 
 class IRS:
@@ -46,7 +29,45 @@ class IRS:
         self.data_from_file = dict()
         self.valid_years = list()
         self.move_data = pd.DataFrame()
-        pass
+        self.status = {
+            'make_file_inventory': {
+                'Method executed': 'No',
+                'Latest retrieval': 'N/A', 'Website queried': 'No',
+                'Available files': 'N/A', 'Date range': 'N/A',
+                },
+            'extract_move_data': {
+                'Method executed': 'No', 'Total rows': 'N/A',
+                'Total counties': 'N/A', 'Date range': 'N/A',
+                }
+            }
+        return None
+
+    def __str__(self):
+        """display useful information on status of code"""
+
+        ## access pipeline
+        pipeline_status = list()
+        for i in self.status.keys():
+            pipeline_status.append(self.status[i]['Method executed'] == 'Yes')
+        if all(set(pipeline_status)):
+            pipeline_status = 'Complete'
+        else:
+            pipeline_status = 'INCOMPLETE'
+        print(pipeline_status)
+        #return pipeline_status
+
+
+    
+        ## compile status
+        print_string = '==== Status of IRS data pipline ================' + '\n'
+        print_string += 'Pipeline' + ': ' + pipeline_status + '\n'
+        for i in self.status.keys():
+            print_string += '\n' + i + '\n'
+            for j in self.status[i].keys():
+                print_string += '\t' + j +': '+ self.status[i][j] + '\n'
+
+
+        return print_string
         
     
     def make_file_inventory(self, start_year=2011):
@@ -59,35 +80,47 @@ class IRS:
                 os.mkdir(iter)
 
         ## construct roster of files
-        file_inventory: pd.DataFrame = pd.DataFrame({'year':range(start_year, pd.Timestamp.now().year)})
+        file_inventory: pd.DataFrame = pd.DataFrame({'year':range(start_year, pd.Timestamp.now().year-3)})
         file_inventory['status'] = 'unknown'
         file_inventory['file'] = file_inventory.apply(
             lambda row: f"input/countyinflow{row['year']-2000}{row['year']-1999}.csv", axis= 1)
         file_inventory['url'] = file_inventory['file'].str.replace(
             pat="input/", repl="https://www.irs.gov/pub/irs-soi/")
+        file_inventory['created'] = 'N/A'
         file_inventory= file_inventory.set_index('year')
 
         ## download files if they do not already exist
         for iter in file_inventory.index:
             if not os.path.isfile(path= file_inventory['file'].at[iter]):
                 file_inventory['status'].at[iter] = 'Not found'
+                file_inventory['created'].at[iter] = '1900-01-01'
                 retrieved_data = requests.get(url= file_inventory['url'].at[iter])
                 if retrieved_data.status_code == 200:
                     file_inventory['status'].at[iter] = 'Downloaded now'
+                    file_inventory['created'].at[iter] = pd.Timestamp.now().strftime('%Y-%m-%d')
                     open(file_inventory['file'].at[iter], 'w').write(retrieved_data.text)
                 else:
                     pass
             else: 
                 file_inventory['status'].at[iter] = 'Downloaded before'
-
-        ## communicate outcomes from file retrieval
-        assert not ('unknown' in set(file_inventory.status)), "Some file retrievals skipped"
-        print('==== File retrieval outcomes ================')
-        print(file_inventory['status'].value_counts().sort_index())
+                i_creation_date = os.path.getctime(file_inventory['file'].at[iter])
+                i_creation_date = pd.Timestamp(i_creation_date, unit='s').strftime('%Y-%m-%d')
+                file_inventory['created'].at[iter] = i_creation_date
 
         ## store useful objects for future functions
         self.file_inventory = file_inventory
         self.valid_years = file_inventory.index[file_inventory['status'] != 'Not found']
+
+        ## analyze outcomes from file retrieval
+        mfi = 'make_file_inventory'
+        assert not ('unknown' in set(file_inventory.status)), "Some file retrievals skipped"
+        self.status[mfi]['Method executed'] = 'Yes'
+        self.status[mfi]['Available files'] = str(len(self.valid_years))
+        self.status[mfi]['Date range'] = str(min(self.valid_years)) +'-'+ str(max(self.valid_years))
+        self.status[mfi]['Latest retrieval'] = file_inventory['created'].max()
+        if not all(file_inventory['status'] == 'Downloaded before'):
+            self.status[mfi]['Website queried'] = 'Yes'
+
         return self
     
 
@@ -125,6 +158,8 @@ class IRS:
 
     def extract_move_data(self, conserve_memory=False):
         """ extract useful data from all valid files"""
+
+        ## extract data from files (use memory conversation if needed)
         if conserve_memory:
             first_iteration = True
             for i in self.valid_years:
@@ -139,14 +174,59 @@ class IRS:
             for i in self.valid_years:
                 self.extract_data_from_file(i)
             self.move_data = pd.concat(self.data_from_file, axis=0, join='outer')
+
+        ## analyze outcomes for status logs
+        emd = 'extract_move_data'
+        self.status[emd]['Method executed'] = 'Yes'
+        self.status[emd]['Total rows'] = str(self.move_data.shape[0])
+        self.status[emd]['Total counties'] = str(len(set(
+            self.move_data.index.get_level_values('origin'))))
+        f = lambda x: str(x.min()) +'-'+ str(x.max())
+        self.status[emd]['Date range'] = f(self.move_data.index.get_level_values('year'))
+
+
         return self
 
+##########==========##########==========##########==========##########==========##########==========
+########## PULL COUNTY COORDINATES and polygons from US Census (Tiger)
 
-########## PULL COUNTY COORDINATES, ADD DISTANCES TO IRS DATA OBJECT & COORDS TO CENSUS
-## Perhaps rename as edge and node data?
+
+########## PULL COUNTY CHARACTERISTICS DATA FROM BEA API (OR CENSUS IF THAT'S BETTER)
 
 
-########## PULL COUNTY CHARACTERISTICS DATA FROM BEA (OR CENSUS IF THAT'S BETTER)
+########## CONSTRUCT TOP-LEVEL SCRIPT EXECUTION FUNCTION
+
+class AllData:
+
+    def __init__(self):
+        """Initialize a class instance"""
+        pass
+
+    def acquire_data(self, verbose=False):
+        """Executes all data retrieval and extraction function"""
+
+        ## retrieve county to county migration data from IRS
+        irs_data = IRS()
+        irs_data.make_file_inventory()
+        irs_data.extract_move_data()
+        if verbose: print(irs_data)
+
+        ## retrieve GIS data from Census (TIGER) TODO
+        #tiger_data = TIGER()
+
+        ## retrieve weather data from NOAA or Meteostat (county-level) TODO
+
+        ## retrieve economic data from BEA (CBSA-level) TODO
+
+        ## retrieve political data from Harvard's Dataverse (state-level) TODO
+
+
+        ## return final product TODO
+        return None
+    
+    def consolidate_data(self):
+        """Consolidate data into node and edge files"""
+        pass
 
 
 ########## TEST EXECUTION OF ALL CODE
@@ -156,10 +236,9 @@ if __name__ == '__main__':
     ## time execution
     start_time = pd.Timestamp.now()
 
-    ## retrieve irs county to county movement data
-    irs_data = IRS().make_file_inventory()
-    irs_data.extract_move_data()
-    print(irs_data.move_data)
+    ## get all data needed to measure node relations (edges and GIS)
+    all_data = AllData().acquire_data(verbose=True)
+
 
     ## print execution time
     print('Execution time:', pd.Timestamp.now() - start_time)
