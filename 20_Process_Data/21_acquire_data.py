@@ -13,22 +13,44 @@ be refreshed with future years.
 
 ## load libraries
 import pandas as pd
+import geopandas as gpd
 import requests
-import warnings, os, datetime
+import warnings, os#, zipfile
 
 ## load setting
 param = dict()
 
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
+def print_pipeline(self, name):
+    """display useful information on status of a class-based pipeline"""
+    pipeline_status = list()
+    for i in self.status.keys():
+        pipeline_status.append(self.status[i]['Method executed'] == 'Yes')
+    if all(set(pipeline_status)):
+        pipeline_status = 'Complete'
+    else:
+        pipeline_status = 'INCOMPLETE'
+
+    ## compile status
+    print_string = f'\n==== Status of {name} pipline ================' + '\n'
+    print_string += 'Pipeline' + ': ' + pipeline_status + '\n'
+    for i in self.status.keys():
+        print_string += '\n' + i + '\n'
+        for j in self.status[i].keys():
+            print_string += '\t' + j +': '+ self.status[i][j] + '\n'
+    return print_string
+
 
 class IrsData:
+    """Class executes an ETL pipeline, retrieving county-to-county movement data from IRS"""
 
     def __init__(self):
         """Initialize a class instance"""
         self.data_from_file = dict()
         self.valid_years = list()
         self.move_data = pd.DataFrame()
+        self.counties = list()
         self.status = {
             'make_file_inventory': {
                 'Method executed': 'No',
@@ -43,33 +65,8 @@ class IrsData:
         return None
 
     def __str__(self):
-        """display useful information on status of code"""
+        return print_pipeline(self, 'IRS data')
 
-        ## access pipeline
-        pipeline_status = list()
-        for i in self.status.keys():
-            pipeline_status.append(self.status[i]['Method executed'] == 'Yes')
-        if all(set(pipeline_status)):
-            pipeline_status = 'Complete'
-        else:
-            pipeline_status = 'INCOMPLETE'
-        print(pipeline_status)
-        #return pipeline_status
-
-
-    
-        ## compile status
-        print_string = '==== Status of IRS data pipline ================' + '\n'
-        print_string += 'Pipeline' + ': ' + pipeline_status + '\n'
-        for i in self.status.keys():
-            print_string += '\n' + i + '\n'
-            for j in self.status[i].keys():
-                print_string += '\t' + j +': '+ self.status[i][j] + '\n'
-
-
-        return print_string
-        
-    
     def make_file_inventory(self, start_year=2011):
         """Download data files from irs, but not if they have already been downloaded"""
 
@@ -80,7 +77,8 @@ class IrsData:
                 os.mkdir(iter)
 
         ## construct roster of files
-        file_inventory: pd.DataFrame = pd.DataFrame({'year':range(start_year, pd.Timestamp.now().year-3)})
+        file_inventory: pd.DataFrame = pd.DataFrame(
+            {'year':range(start_year, pd.Timestamp.now().year-3)})
         file_inventory['status'] = 'unknown'
         file_inventory['file'] = file_inventory.apply(
             lambda row: f"input/countyinflow{row['year']-2000}{row['year']-1999}.csv", axis= 1)
@@ -125,7 +123,7 @@ class IrsData:
     
 
     def extract_data_from_file(self, year) -> pd.DataFrame:
-        """Extract useful information from a csv file"""
+        """Extract useful information from an IRS county-to-county movement data csv file"""
 
         ## read in useful columns
         cols= {'y1_statefips':str, 'y1_countyfips':str, 'y2_statefips':str}
@@ -175,6 +173,14 @@ class IrsData:
                 self.extract_data_from_file(i)
             self.move_data = pd.concat(self.data_from_file, axis=0, join='outer')
 
+        ## determine the most recent year in which each county appears in the data
+        geography = self.move_data.reset_index()[['year', 'origin']]
+        geography = geography.sort_values(by=['year','origin'], ascending=[False, True])
+        geography = geography.drop_duplicates(subset=['origin']).reset_index(drop=True)
+        self.geography = geography
+
+        #self.geography = set(self.move_data.index.get_level_values('origin'))
+
         ## analyze outcomes for status logs
         emd = 'extract_move_data'
         self.status[emd]['Method executed'] = 'Yes'
@@ -190,10 +196,77 @@ class IrsData:
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL SHAPE FILES FROM CENSUS TIGER
 
+class TigerData:
+
+    def __init__(self, counties):
+        """Initialize function"""
+        self.counties = counties
+        self.status = {
+            'get_state_gis':{
+                'Method executed': 'No',
+                'Latest retrieval': 'NA', 'Website queried': 'NA',
+                'Total states': 'NA', 'Vintage': 'NA',
+                },
+            'get_county_gis':{
+                'Method executed': 'No',
+                'Latest retrieval': 'NA', 'Website queried': 'NA',
+                'Total county': 'NA', 'Vintage range': 'NA',
+                },
+            'get_cbsa_gis':{
+                'Method executed': 'No',
+                'Latest retrieval': 'NA', 'Website queried': 'NA',
+                'Total cbsa': 'NA', 'Vintage range': 'NA',
+                },
+        }
+
+    def __str__(self):
+        return print_pipeline(self, 'GIS data')
+
+    def get_state_gis(self):
+        """Retrieve state shapefiles from Census"""
+
+        ## assemble useful variables
+        year = str(pd.Timestamp.now().year-1)
+        file_name = f"tl_{year}_us_state"
+        web_url = f"https://www2.census.gov/geo/tiger/TIGER{year}/STATE/{file_name}.zip"
+        local_url = f"input/{file_name}.zip"
+        f_name = 'get_state_gis'
+        needed_columns = ['STUSPS','GEOID','INTPTLAT','INTPTLON','geometry']
+
+
+        ## download file unless it has already been downloaded
+        if os.path.isfile(local_url):
+            self.status[f_name]['Website queried'] = 'No'
+            self.status[f_name]['Latest retrieval'] = pd.Timestamp(
+                os.path.getctime(local_url), unit='s').strftime('%Y-%m-%d')
+        else:
+            state_gis = requests.get(url=web_url, verify=False)
+            open(local_url, 'wb').write(state_gis.content)
+            self.status[f_name]['Website queried'] = 'Yes'
+            self.status[f_name]['Latest retrieval'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+
+        ## read in file and filter to just the important columns
+        state_gis = gpd.read_file('zip://' + local_url + '!' + file_name + '.shp',
+                                  columns=needed_columns)
+        state_gis = state_gis.sort_values(['STUSPS']).astype({'INTPTLAT':float, 'INTPTLON':float})
+
+
+        ## analyze outcomes for logs
+        self.status[f_name]['Vintage'] = str(year)
+        self.status[f_name]['Total states'] = str(len(set(state_gis['GEOID'])))
+        self.status[f_name]['Method executed'] = 'Yes'
+
+        ## incorporate data into class
+        self.state_gis = state_gis
+
+
+
+
 ##########==========##########==========##########==========##########==========##########==========
 ########## CONSTRUCT TOP-LEVEL SCRIPT EXECUTION FUNCTION
 
 class AllData:
+    """Class executes all data ETL code in this script and compiles the results"""
 
     def __init__(self):
         """Initialize a class instance"""
@@ -208,14 +281,16 @@ class AllData:
         irs_data.extract_move_data()
         if verbose: print(irs_data)
 
-        ## retrieve GIS data from Census (TIGER) TODO
-        #tiger_data = TIGER()
-
         ## retrieve weather data from NOAA or Meteostat (county-level) TODO
 
         ## retrieve economic data from BEA (CBSA-level) TODO
 
         ## retrieve political data from Harvard's Dataverse (state-level) TODO
+
+        ## retrieve GIS data from Census (TIGER) TODO
+        tiger_data = TigerData(counties=irs_data.geography)
+        tiger_data.get_state_gis()
+        if verbose: print(tiger_data)
 
 
         ## return final product TODO
@@ -238,7 +313,7 @@ if __name__ == '__main__':
 
 
     ## print execution time
-    print('Execution time:', pd.Timestamp.now() - start_time)
+    #print('Execution time:', pd.Timestamp.now() - start_time)
     
 
 ##########==========##########==========##########==========##########==========##########==========
