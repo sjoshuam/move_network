@@ -22,7 +22,7 @@ param = dict()
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
 
-class IRS:
+class IrsData:
 
     def __init__(self):
         """Initialize a class instance"""
@@ -188,12 +188,9 @@ class IRS:
         return self
 
 ##########==========##########==========##########==========##########==========##########==========
-########## PULL COUNTY COORDINATES and polygons from US Census (Tiger)
+########## PULL SHAPE FILES FROM CENSUS TIGER
 
-
-########## PULL COUNTY CHARACTERISTICS DATA FROM BEA API (OR CENSUS IF THAT'S BETTER)
-
-
+##########==========##########==========##########==========##########==========##########==========
 ########## CONSTRUCT TOP-LEVEL SCRIPT EXECUTION FUNCTION
 
 class AllData:
@@ -206,7 +203,7 @@ class AllData:
         """Executes all data retrieval and extraction function"""
 
         ## retrieve county to county migration data from IRS
-        irs_data = IRS()
+        irs_data = IrsData()
         irs_data.make_file_inventory()
         irs_data.extract_move_data()
         if verbose: print(irs_data)
