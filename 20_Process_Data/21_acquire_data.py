@@ -22,6 +22,7 @@ param = dict()
 
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
+
 def print_pipeline(self, name):
     """display useful information on status of a class-based pipeline"""
     pipeline_status = list()
@@ -198,41 +199,56 @@ class IrsData:
 
 class TigerData:
 
-    def __init__(self, counties):
+    def __init__(self, counties: pd.DataFrame):
         """Initialize function"""
         self.counties = counties
+        self.cbsa = None
+        self.gis = None
         self.status = {
-            'get_state_gis':{
+            'get_gis (State)':{
                 'Method executed': 'No',
-                'Latest retrieval': 'NA', 'Website queried': 'NA',
-                'Total states': 'NA', 'Vintage': 'NA',
-                },
-            'get_county_gis':{
+                'Latest retrieval': '', 'Website queried': '',
+                'Total rows': '', 'Total states': '', 'Vintage': '',
+            },
+            'get_gis (County)':{
                 'Method executed': 'No',
-                'Latest retrieval': 'NA', 'Website queried': 'NA',
-                'Total county': 'NA', 'Vintage range': 'NA',
-                },
-            'get_cbsa_gis':{
+                'Latest retrieval': '', 'Website queried': '',
+                'Total rows': '', 'Total states': '', 'Vintage': '',
+            },
+            'get_gis (CBSA)':{
                 'Method executed': 'No',
-                'Latest retrieval': 'NA', 'Website queried': 'NA',
-                'Total cbsa': 'NA', 'Vintage range': 'NA',
-                },
+                'Latest retrieval': '', 'Website queried': '',
+                'Total rows': '', 'Total states': '', 'Vintage': '',
+            },
+            'extract_gis':{
+                'Method executed': 'No',
+                'Geographies': 'USA', 'Total rows': '', 'NA count': '',
+            },
+            'get_old_gis':{
+                'Method executed': 'No',
+            },
+            'clean_gis':{
+                'Method executed': 'No',
+                'Geographies':'USA', 'Total rows': '', 'NA count': '',
+                'GEOID lengths': '', 'Coordinate range': '',
+            },
         }
+
 
     def __str__(self):
         return print_pipeline(self, 'GIS data')
+    
 
-    def get_state_gis(self):
-        """Retrieve state shapefiles from Census"""
+    def get_gis(self, geo_type:str, year:str):
+        "Retrieve shapefiles from Census"
 
-        ## assemble useful variables
-        year = str(pd.Timestamp.now().year-1)
-        file_name = f"tl_{year}_us_state"
-        web_url = f"https://www2.census.gov/geo/tiger/TIGER{year}/STATE/{file_name}.zip"
-        local_url = f"input/{file_name}.zip"
-        f_name = 'get_state_gis'
-        needed_columns = ['STUSPS','GEOID','INTPTLAT','INTPTLON','geometry']
-
+        ## assemble variables
+        year = year
+        file_name = f'tl_{year}_us_{geo_type.lower()}'
+        web_url= f'https://www2.census.gov/geo/tiger/TIGER{year}/{geo_type.upper()}/{file_name}.zip'
+        local_url = f'input/{file_name}.zip'
+        f_name = f'get_gis ({geo_type})'
+        key_cols = ['GEOID', 'STATEFP']
 
         ## download file unless it has already been downloaded
         if os.path.isfile(local_url):
@@ -240,26 +256,97 @@ class TigerData:
             self.status[f_name]['Latest retrieval'] = pd.Timestamp(
                 os.path.getctime(local_url), unit='s').strftime('%Y-%m-%d')
         else:
-            state_gis = requests.get(url=web_url, verify=False)
-            open(local_url, 'wb').write(state_gis.content)
+            gis_data = requests.get(url=web_url, verify=False)
+            open(local_url, 'wb').write(gis_data.content)
             self.status[f_name]['Website queried'] = 'Yes'
             self.status[f_name]['Latest retrieval'] = pd.Timestamp.now().strftime('%Y-%m-%d')
 
-        ## read in file and filter to just the important columns
-        state_gis = gpd.read_file('zip://' + local_url + '!' + file_name + '.shp',
-                                  columns=needed_columns)
-        state_gis = state_gis.sort_values(['STUSPS']).astype({'INTPTLAT':float, 'INTPTLON':float})
-
-
-        ## analyze outcomes for logs
+        ## analyze downloaded data and log it
+        gis_data = gpd.read_file(filename='zip://'+local_url+'!'+file_name+'.shp', columns=key_cols)
         self.status[f_name]['Vintage'] = str(year)
-        self.status[f_name]['Total states'] = str(len(set(state_gis['GEOID'])))
+        self.status[f_name]['Total rows'] = str(gis_data.shape[0])
+        if 'STATEFP' in gis_data.columns:
+            self.status[f_name]['Total states'] = str(len(set(gis_data['STATEFP'])))
         self.status[f_name]['Method executed'] = 'Yes'
 
-        ## incorporate data into class
-        self.state_gis = state_gis
+        ## return class object
+        return self
+    
+
+    def extract_gis(self, geo_type:str, year:str):
+        "extract coordinate data from gis files"
+
+        ## assemble variables
+        year = year
+        local_url = f'zip://input/tl_{year}_us_{geo_type.lower()}.zip'
+        local_url = local_url+f'!tl_{year}_us_{geo_type.lower()}.shp'
+        f_name = 'extract_gis'
+        key_cols = ['STATEFP', 'STUSPS', 'GEOID', 'INTPTLON', 'INTPTLAT', 'ALAND', 'NAME']
+
+        ## extract data from
+        gis = gpd.read_file(local_url, columns=key_cols).drop(columns=['geometry'])
+        gis['geo_type'] = geo_type
+        if self.gis is None:
+            self.gis = gis
+        else:
+            self.gis = pd.concat([self.gis, gis], axis=0, join='outer', ignore_index=True)
+
+        ## log outcomes
+        self.status[f_name]['Geographies'] = self.status[f_name]['Geographies'] +', '+ geo_type
+        self.status[f_name]['Total rows'] = str(self.gis.shape[0])
+        self.status[f_name]['NA count'] = str(self.gis.isna().sum().sum())
+        self.status[f_name]['Method executed'] = 'Yes'
+
+        ## return class object
+        return self
+        
+
+    def get_old_gis():
+        pass
 
 
+    def clean_gis(self):
+
+        ## fill in missing usps state codes for counties
+        crosswalk = self.gis.loc[self.gis['geo_type'] == 'State', ['STATEFP', 'STUSPS']]
+        self.gis = self.gis.drop(columns=['STUSPS'])
+        self.gis = pd.merge(self.gis, crosswalk, on='STATEFP', how='left')
+
+        ## fill in missing usps and fips state codes for CBSA; simplify names
+        self.gis['CBSA_usps'] = self.gis['NAME'].str.replace(
+            pat=r".+, ([A-Z][A-Z])[^ ]*$", repl=r"\1", regex=True)
+        cbsa_index = self.gis['geo_type'] == 'CBSA'
+        self.gis.loc[cbsa_index, 'STUSPS'] = self.gis.loc[cbsa_index, 'CBSA_usps']
+        self.gis = self.gis.drop(columns='CBSA_usps')
+        self.gis.loc[cbsa_index, 'NAME'] = self.gis.loc[cbsa_index, 'NAME'].str.replace(
+            r'-.*', r'', regex=True).str.replace(r', .*', r'', regex=True)
+        self.gis = self.gis.drop(columns=['STATEFP'])
+        self.gis = pd.merge(self.gis, crosswalk, on='STUSPS', how='left')
+
+        ## sort columns
+        col_order = ['geo_type','STUSPS','GEOID','INTPTLON','INTPTLAT','NAME','ALAND','STATEFP']
+        assert set(col_order) == set(self.gis.columns), 'Columns do not match expectations'
+        self.gis = self.gis[col_order].copy()
+
+        ## convert numbers to float and convert aland to square miles
+        self.gis = self.gis.astype({'INTPTLON':float, 'INTPTLAT':float, 'ALAND': float})
+        self.gis['ALAND'] = (self.gis['ALAND'] / 2589988.110336).round(2)
+
+        ## log results
+        cg = 'clean_gis'
+        self.status[cg]['Method executed'] = 'Yes'
+        self.status[cg]['Geographies'] += ', '+', '.join(list(set(self.gis['geo_type'])))
+        self.status[cg]['Total rows'] += str(self.gis.shape[0])
+        self.status[cg]['NA count'] += str(self.gis.isna().sum().sum())
+        self.status[cg]['GEOID lengths'] += ', '.join(
+            self.gis['GEOID'].str.len().unique().astype(str).tolist())
+        
+        temp = self.gis[['INTPTLON', 'INTPTLAT']].agg(['min', 'max']).round(1).astype(str)
+        temp = ' '.join(temp.agg(lambda x: '('+','.join(x)+')').to_list())
+        self.status[cg]['Coordinate range'] = temp
+        
+        ## return class object
+        return self
 
 
 ##########==========##########==========##########==========##########==========##########==========
@@ -289,9 +376,11 @@ class AllData:
 
         ## retrieve GIS data from Census (TIGER) TODO
         tiger_data = TigerData(counties=irs_data.geography)
-        tiger_data.get_state_gis()
+        for i in ['State', 'County', 'CBSA']:
+            tiger_data.get_gis(i, max(irs_data.valid_years))
+            tiger_data.extract_gis(i, max(irs_data.valid_years))
+        tiger_data.clean_gis()
         if verbose: print(tiger_data)
-
 
         ## return final product TODO
         return None
@@ -300,20 +389,14 @@ class AllData:
         """Consolidate data into node and edge files"""
         pass
 
+##########==========##########==========##########==========##########==========##########==========
+##########==========##########==========##########==========##########==========##########==========
 
 ########## TEST EXECUTION OF ALL CODE
 
 if __name__ == '__main__':
-
-    ## time execution
-    start_time = pd.Timestamp.now()
-
-    ## get all data needed to measure node relations (edges and GIS)
     all_data = AllData().acquire_data(verbose=True)
-
-
-    ## print execution time
-    #print('Execution time:', pd.Timestamp.now() - start_time)
     
 
+##########==========##########==========##########==========##########==========##########==========
 ##########==========##########==========##########==========##########==========##########==========
