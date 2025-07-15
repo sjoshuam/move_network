@@ -2,6 +2,7 @@
 
 python3 -m venv .venv_20
 source .venv_20/bin/activate
+pip install --upgrade pip --quite --no-input
 pip install pandas pyspark requests geopandas shapely  --quiet --no-input
 pip freeze > .venv_20/requirements.txt
 

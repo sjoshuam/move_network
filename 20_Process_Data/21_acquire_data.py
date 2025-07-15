@@ -11,17 +11,20 @@ be refreshed with future years.
 ########## LIBRARIES AND SETTINGS
 ## Note: environment created with python3 -m venv venv_20; source .venv_20/bin/activate
 
-## load libraries
+## load libraries (built-in)
+import warnings, os, json
+
+## load libraries (venv extras)
 import pandas as pd
 import geopandas as gpd
 import requests
-import warnings, os#, zipfile
+
 
 ## load setting
 param = dict()
 
 ##########==========##########==========##########==========##########==========##########==========
-########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
+########## GENERIC HELPER FUNCTIONS
 
 def print_pipeline(self, name):
     """display useful information on status of a class-based pipeline"""
@@ -41,6 +44,20 @@ def print_pipeline(self, name):
         for j in self.status[i].keys():
             print_string += '\t' + j +': '+ self.status[i][j] + '\n'
     return print_string
+
+
+def get_credentials(file_loc=".credentials.json") -> pd.DataFrame:
+    if os.path.isfile(file_loc):
+        with open(".credentials.json") as credentials_conn:
+            credentials = json.load(credentials_conn)
+            return credentials
+    else:
+        raise Exception("Could not find an API credential file at the specified location")
+
+
+##########==========##########==========##########==========##########==========##########==========
+########## PULL COUNTY-TO-COUNTY MIGRATION DATA FROM IRS
+
 
 
 class IrsData:
@@ -193,6 +210,61 @@ class IrsData:
 
 
         return self
+    
+
+##########==========##########==========##########==========##########==========##########==========
+########## PULL CBSA data from the BEA API
+
+class BeaData:
+
+    def __init__(self, years:list[int], credentials:dict[str]):
+        "Initialize function"
+        self.years = years
+        self.credentials = credentials
+        self.status = {
+            'get_bea_data':{
+                'Method executed':'No',
+                'Latest retrieval':'',
+                'Website queried':'',
+            },
+            'extract_bea_data':{
+                'Method executed':'No'
+            },
+        }
+
+    def __str__(self):
+        return print_pipeline(self, 'BEA data')
+
+    def get_bea_data(self):
+        "Query the BEA API to get CBSA data for "
+
+        ## define useful variables
+        f_name = 'get_bea_data'
+
+        ## assemble url
+        file_loc = 'input/bea_data.json'
+        url = f"https://apps.bea.gov/api/data/?UserID={self.credentials['BEA']}"
+        url += "&method=GetData&datasetname=Regional&GeoFIPS=MSA&ResultFormat=json"
+        url += f"&TableName=MARPP&LineCode=3"
+        url += f"&Year={','.join([str(i) for i in self.years])}"
+
+        ## download data if it has already been downloaded
+        if os.path.isfile(file_loc):
+            self.status[f_name]['Website queried'] = 'No'
+        else:
+            bea_data = requests.get(url)
+            self.status[f_name]['Website queried'] = 'Yes'
+            if bea_data.status_code == 200:
+                with open(file_loc, 'wt') as conn:
+                    conn.write(bea_data.text)
+            else:
+                self.status['f_name']['Total lines in file'] = -1
+
+        ## tabulate statistics
+        if os.path.isfile(file_loc):
+            creation_date = pd.Timestamp(os.path.getctime(file_loc), unit='s')
+            self.status[f_name]['Latest retrieval'] = creation_date.strftime('%Y-%m-%d')
+        self.status[f_name]['Method executed'] = 'Yes'
 
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL SHAPE FILES FROM CENSUS TIGER
@@ -362,6 +434,9 @@ class AllData:
     def acquire_data(self, verbose=False):
         """Executes all data retrieval and extraction function"""
 
+        ## load credentials
+        credentials = get_credentials()
+
         ## retrieve county to county migration data from IRS
         irs_data = IrsData()
         irs_data.make_file_inventory()
@@ -371,16 +446,25 @@ class AllData:
         ## retrieve weather data from NOAA or Meteostat (county-level) TODO
 
         ## retrieve economic data from BEA (CBSA-level) TODO
+        if True:
+            bea_data = BeaData(years=irs_data.valid_years, credentials=credentials)
+            bea_data.get_bea_data()
+            if verbose: print(bea_data)
+        else:
+            Warning('BEA section disabled')
 
         ## retrieve political data from Harvard's Dataverse (state-level) TODO
 
         ## retrieve GIS data from Census (TIGER) TODO
-        tiger_data = TigerData(counties=irs_data.geography)
-        for i in ['State', 'County', 'CBSA']:
-            tiger_data.get_gis(i, max(irs_data.valid_years))
-            tiger_data.extract_gis(i, max(irs_data.valid_years))
-        tiger_data.clean_gis()
-        if verbose: print(tiger_data)
+        if False:
+            tiger_data = TigerData(counties=irs_data.geography)
+            for i in ['State', 'County', 'CBSA']:
+                tiger_data.get_gis(i, max(irs_data.valid_years))
+                tiger_data.extract_gis(i, max(irs_data.valid_years))
+            tiger_data.clean_gis()
+            if verbose: print(tiger_data)
+        else:
+            print('WARNING: Census Tiger section disabled')
 
         ## return final product TODO
         return None
