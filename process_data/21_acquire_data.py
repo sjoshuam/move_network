@@ -99,11 +99,12 @@ class IrsData:
             {'year':range(start_year, pd.Timestamp.now().year-3)})
         file_inventory['status'] = 'unknown'
         file_inventory['file'] = file_inventory.apply(
-            lambda row: f"input/countyinflow{row['year']-2000}{row['year']-1999}.csv", axis= 1)
+            lambda row: f"input/irs_countyinflow{row['year']-2000}{row['year']-1999}.csv", axis= 1)
         file_inventory['url'] = file_inventory['file'].str.replace(
-            pat="input/", repl="https://www.irs.gov/pub/irs-soi/")
+            pat="input/irs_", repl="https://www.irs.gov/pub/irs-soi/")
         file_inventory['created'] = 'N/A'
         file_inventory= file_inventory.set_index('year')
+
 
         ## download files if they do not already exist
         for iter in file_inventory.index:
@@ -197,8 +198,6 @@ class IrsData:
         geography = geography.drop_duplicates(subset=['origin']).reset_index(drop=True)
         self.geography = geography
 
-        #self.geography = set(self.move_data.index.get_level_values('origin'))
-
         ## analyze outcomes for status logs
         emd = 'extract_move_data'
         self.status[emd]['Method executed'] = 'Yes'
@@ -208,7 +207,6 @@ class IrsData:
         f = lambda x: str(x.min()) +'-'+ str(x.max())
         self.status[emd]['Date range'] = f(self.move_data.index.get_level_values('year'))
 
-
         return self
     
 
@@ -217,8 +215,10 @@ class IrsData:
 
 class BeaData:
 
+
     def __init__(self, years:list[int], credentials:dict[str]):
         "Initialize function"
+        self.file_loc = 'input/bea_data.json'
         self.years = years
         self.credentials = credentials
         self.status = {
@@ -228,9 +228,11 @@ class BeaData:
                 'Website queried':'',
             },
             'extract_bea_data':{
-                'Method executed':'No'
+                'Method executed':'No',
+                'Total MSA':'', 'Date range':'',
             },
         }
+
 
     def __str__(self):
         return print_pipeline(self, 'BEA data')
@@ -242,7 +244,7 @@ class BeaData:
         f_name = 'get_bea_data'
 
         ## assemble url
-        file_loc = 'input/bea_data.json'
+        file_loc = self.file_loc
         url = f"https://apps.bea.gov/api/data/?UserID={self.credentials['BEA']}"
         url += "&method=GetData&datasetname=Regional&GeoFIPS=MSA&ResultFormat=json"
         url += f"&TableName=MARPP&LineCode=3"
@@ -265,6 +267,11 @@ class BeaData:
             creation_date = pd.Timestamp(os.path.getctime(file_loc), unit='s')
             self.status[f_name]['Latest retrieval'] = creation_date.strftime('%Y-%m-%d')
         self.status[f_name]['Method executed'] = 'Yes'
+
+
+    def extract_bea_data(self):
+        """Extract data from raw json file"""
+        pass
 
 ##########==========##########==========##########==========##########==========##########==========
 ########## PULL SHAPE FILES FROM CENSUS TIGER
@@ -449,6 +456,7 @@ class AllData:
         if True:
             bea_data = BeaData(years=irs_data.valid_years, credentials=credentials)
             bea_data.get_bea_data()
+            bea_data.extract_bea_data()
             if verbose: print(bea_data)
         else:
             Warning('BEA section disabled')
