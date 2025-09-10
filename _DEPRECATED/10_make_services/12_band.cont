@@ -1,8 +1,0 @@
-
-## install devpi
-FROM ubuntu:24.04
-WORKDIR $HOME
-COPY 12_devpi.sh 12_devpi.sh
-COPY .password.txt .password.txt
-CMD ["bash", "12_devpi.sh"]
-EXPOSE 3141
