@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## NOTE:  This script envisions Ubuntu 24.04 running Python 3.12
+
 ## Abort if not using the designated operating system 
 if [ ! $(grep ^VERSION_ID=  /etc/os-release) == 'VERSION_ID="24.04"' ]; then
   echo 'ERROR: Script designed to run on Ubuntu 24.04; aborting...'
@@ -27,7 +29,6 @@ if ! python3 -V 2>&1 | grep -q "^Python 3\.12"; then
   echo "ERROR: Script designed to run with Python 3.12"
   exit 2
 fi
-
 
 # build and activate virtual environment
 python3.12 -m venv env
