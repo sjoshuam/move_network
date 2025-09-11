@@ -1,11 +1,9 @@
 #!/bin/bash
 
-
-
 # update operating system
 if [ $(uname -s) == 'Linux' ]; then
-  sudo DEBIAN_FRONTEND=noninteractive apt-get update -yqq
-  sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -yqq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -y #qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y #qq
 fi
 
 # build and activate virtual environment
@@ -13,15 +11,14 @@ python3.12 -m venv env
 source env/bin/activate
 
 # install packages
-pip install pip --upgrade --no-input --quiet
+pip install pip --upgrade --no-input #--quiet
 
 if [ ! -e requirements.txt ]; then
-    pip install pandas pyspark igraph dash scikit-learn --no-input --quiet
-    pip torch torchvision torch-geometric --no-input --quiet
-  fi
+    pip install pandas pyspark igraph dash scikit-learn --no-input #--quiet
+    pip install torch torchvision torch-geometric --no-input #--quiet
     pip freeze > requirements.txt
   else
-    pip install -r requirements.txt  --no-input --quiet
+    pip install -r requirements.txt  --no-input #--quiet
 fi
 
 # set up directory structure
