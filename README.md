@@ -41,7 +41,9 @@ If a major US metro area declined:
 + Which other metro areas would benefit most?
 
 
- ## Planned files
+ ## Key Files
+
+ [Link to Kanban Board](https://github.com/users/sjoshuam/projects/4/views/1)
 
 00. execute_project
   + [ ] 00 execute_project.py
@@ -59,7 +61,7 @@ If a major US metro area declined:
   + [ ] 23 refine_geography_data.py
   + [ ] 24 refine_polity_data.py
   + [ ] 25 refine_climate_data.py (after mvp)
-30. make_objects
+30. make_object
   + [ ] 31 compile_node_data.py
   + [ ] 32 compile_edge_data.py
 40. describe_object
