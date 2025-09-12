@@ -46,40 +46,6 @@ class Utilities:
                 print(elapsed_time)
             return output
         return exection_timer
-    
-    class GetData(abc.ABC):
-        '''Define an abstract class for retrieving data from the web'''
-
-        def __init__(
-            self, file_url:str, api_url:str, api_query:str, settings=settings):
-
-            ## assemble roster of desired data files
-            years = settings.execute_project['years']
-            file_roster = {i:file_url.format(year=i) for i in years}
-
-            ## assemble roster of source urls
-            url_roster = api_url + api_query
-            url_roster = {i:url_roster.format(year=i) for i in years}
-
-            ## determine what files need to be downloaded
-            need_file = {i:pathlib.Path(file_roster[i]).exists() for i in years}
-
-            ## compile data as unified class instance attribute.
-            self.roster = dict()
-            for i in years:
-                self.roster[i] = dict(
-                    file=file_roster[i],
-                    url=url_roster[i],
-                    needed=need_file[i]
-                    )
-                
-        def query_api(self):
-            pass ## TODO: write this method!
-
-        @abc.abstractmethod
-        def get_data(self):
-            pass
-
 
         
 ##### TEST CLASS INSTANTIATION
@@ -101,15 +67,6 @@ if __name__ == '__main__':
         return f'Executed {10**n} loops'
 
     execute_something(n=3)
-
-    ## test abstract class for getting data from internet sources
-    get_data = utilities.GetData(
-        file_url='input/census_population_{year}.json',
-        api_url='https://api.census.gov/data/{year}/acs/acs5/subject',
-        api_query='?get=NAME,S0101_C01_001E&for=county:*',
-    )
-
-    print(get_data.roster, '\n')
 
         
 ##########==========##########==========##########==========##########==========
