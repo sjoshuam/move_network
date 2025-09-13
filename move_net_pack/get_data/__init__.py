@@ -19,7 +19,7 @@ class GetData():
     '''Define an abstract class for retrieving data from the web'''
 
     def __init__(
-        self, file_url, api_url, api_query, settings=settings):
+        self, file_url, api_url, api_query, print_name, settings=settings):
 
         # assemble roster of desired data files
         years = settings.execute_project['years']
@@ -45,6 +45,7 @@ class GetData():
                 )
 
         self.queried = False
+        self.print_name = print_name
             
     @utilities.govern_print_verbosity
     def __str__(self):
@@ -59,7 +60,7 @@ class GetData():
                 else: missing += 1
 
         # Formulate output
-        message = 'GetData: '
+        message = f'GetData ({self.print_name}): '
         message += f'Of {len(self.roster)} files, {found} found, '
         message += f'{acquired} acquired, and {missing} missing '
         message += f'{"with" if self.queried else "without"} API query.'
@@ -80,6 +81,7 @@ class GetData():
                 continue
             
             # Attempt to download
+            self.queried = True
             response = requests.get(self.roster[i]['url'])
             if response.status_code == 200:
                 self.roster[i]['acquired'] = True
@@ -87,17 +89,17 @@ class GetData():
                     conn.write(response.text)
                     conn.close()
             time.sleep(delay)
-        self.queried = True
-
+        
         return None
 
-
+###  TEST CODE
 if __name__ == '__main__':
 
     get_data = GetData(
-        file_url='input/census_acs_population_{year}.json',
+        file_url='input/test_acs_{year}.json',
         api_url='https://api.census.gov/data/{year}/acs/acs5/subject',
         api_query='?get=NAME,S0101_C01_001E&for=county:*',
+        print_name='test_census'
     )
 
     print(get_data)
