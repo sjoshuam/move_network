@@ -11,6 +11,7 @@ utilities = Utilities()
 
 ## import module specific utilities
 from move_net_pack.get_data.m11_get_census_data import get_census_data
+from move_net_pack.get_data.m12_get_move_data import GetIRSData
 
 ##### DEFINE TOP-LEVEL CLASS
 
@@ -39,6 +40,7 @@ class MoveNetwork:
     def get_data(self):
         '''Stage 1.0: Get Data'''
         census_data = get_census_data()
+        irs_data = GetIRSData().adjust_irs_api_links().query_api()
         self.status['get_data'] = True
         return None
 
@@ -81,12 +83,7 @@ class MoveNetwork:
 ##### TEST CODE
 if __name__ == '__main__':
     move_network = MoveNetwork()
-
     move_network.get_data()
-    move_network.refine_data()
-    move_network.make_object()
-    move_network.describe_object()
-    move_network.model_object()
     print(move_network)
 
 

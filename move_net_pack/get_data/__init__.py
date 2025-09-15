@@ -60,7 +60,7 @@ class GetData():
                 else: missing += 1
 
         # Formulate output
-        message = f'GetData ({self.print_name}): '
+        message = f'GetData/{self.print_name}: '.ljust(20)
         message += f'Of {len(self.roster)} files, {found} found, '
         message += f'{acquired} acquired, and {missing} missing '
         message += f'{"with" if self.queried else "without"} API query.'
@@ -90,7 +90,8 @@ class GetData():
                     conn.close()
             time.sleep(delay)
         
-        return None
+        print(self)
+        return self
 
 ###  TEST CODE
 if __name__ == '__main__':

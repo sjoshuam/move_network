@@ -20,7 +20,7 @@ census_data_dict = {
     # Population count by age: Total, Under 18, Over 64
     'age': ['S0101_C01_001E', 'S0101_C01_006E', 'S0101_C01_030E'],
     # Population count by degree: Total, Bachelors, Graduate
-    'degree': ['S1501_C01_001E', 'S1501_C01_015E', 'S1501_C01_016E'],
+    'edu': ['S1501_C01_001E', 'S1501_C01_015E', 'S1501_C01_016E'],
     # Population count by employment: Total, Employed, Unemployed
     'job': ['S2301_C01_001E', 'S2301_C01_002E', 'S2301_C01_003E'],
     # Median income:  Income, Rent Costs, Homeowner Costs
@@ -49,7 +49,6 @@ def get_census_data(data_dict=census_data_dict) -> dict:
         )
         get_data.query_api()
         raw_rosters[i] = get_data.roster
-        print(get_data)
 
     ## compile and simplify roster information
     roster = dict()
