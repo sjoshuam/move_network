@@ -12,6 +12,8 @@ utilities = Utilities()
 ## import module specific utilities
 from move_net_pack.get_data.m11_get_census_data import get_census_data
 from move_net_pack.get_data.m12_get_move_data import GetIRSData
+from move_net_pack.get_data.m13_get_geography_data import GetGeoData
+from move_net_pack.get_data.m14_get_polity_data import GetPolityData
 
 ##### DEFINE TOP-LEVEL CLASS
 
@@ -41,6 +43,8 @@ class MoveNetwork:
         '''Stage 1.0: Get Data'''
         census_data = get_census_data()
         irs_data = GetIRSData().adjust_irs_api_links().query_api()
+        geo_data = GetGeoData().query_api()
+        polity_data = GetPolityData().adjust_polity_roster().query_api()
         self.status['get_data'] = True
         return None
 

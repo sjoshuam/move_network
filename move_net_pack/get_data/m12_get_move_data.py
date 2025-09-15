@@ -1,6 +1,5 @@
 '''Get data on residential moves between US counties from IRS SOI'''
 
-
 ##### IMPORT CODE DEPENDENCIES
 
 # import settings
@@ -24,7 +23,7 @@ class GetIRSData(GetData):
             file_url='input/irs_soi_moves_{year}.csv',
             api_url='https://www.irs.gov',
             api_query='/pub/irs-soi/countyoutflow[y0y1].csv',
-            print_name='irs_moves'
+            print_name='soi_moves'
             )
 
     def adjust_irs_api_links(self):
@@ -40,3 +39,5 @@ if __name__ == '__main__':
 
     ## retrive irs data
     irs_data = GetIRSData().adjust_irs_api_links().query_api()
+
+##########==========##########==========##########==========##########==========
