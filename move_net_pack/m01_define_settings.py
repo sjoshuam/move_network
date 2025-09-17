@@ -1,12 +1,15 @@
 '''Defines key settings for use across all project scripts'''
 
+#### LOAD BUILT IN CODE
+import os
+
 ##### DEFINE CLASS TO HOLD SETTINGS
 class Settings:
     '''Defines key settings for use across all project scrips'''
 
     def __init__(
         self,
-        years=range(2011, 2020), verbose=True,
+        years=range(2011, 2020), verbose=True, cpus=os.cpu_count(),
         query=True, reload=False
         ):
 
@@ -16,7 +19,7 @@ class Settings:
         self.subpack += ['see_result']
         for i in self.subpack:
             setattr(self, i, dict())
-        self.execute_project = dict(years=years, verbose=verbose)
+        self.execute_project = dict(years=years, verbose=verbose, cpus=cpus)
         self.get_data = dict(query=query, reload=reload)
 
     def __str__(self):

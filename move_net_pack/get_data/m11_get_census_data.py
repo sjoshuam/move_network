@@ -44,7 +44,7 @@ def get_census_data(data_dict=census_data_dict) -> dict:
         get_data = GetData(
             file_url=f'input/census_acs_{i}_{yr}.json',
             api_url='https://api.census.gov/data/{year}/acs/acs5/subject',
-            api_query=f'?get=NAME,{data_dict[i]}&for=county:*',
+            api_query=f'?get={data_dict[i]}&for=county:*',
             print_name=f'acs_{i}'
         )
         get_data.query_api()
@@ -54,8 +54,9 @@ def get_census_data(data_dict=census_data_dict) -> dict:
     roster = dict()
     for i in raw_rosters.keys():
         for j in raw_rosters[i].keys():
-            roster[(i,j)] = raw_rosters[i][j]['file']
-    return roster
+            roster[(i,j)] = raw_rosters[i][j]
+    get_data.roster = roster
+    return get_data
 
 
 ##### TEST THE CODE
@@ -64,7 +65,7 @@ if __name__ == '__main__':
 
     ## confirm roster
     print('-'*10)
-    print(census_data)
+    #print(census_data)
 
 
 ##########==========##########==========##########==========##########==========

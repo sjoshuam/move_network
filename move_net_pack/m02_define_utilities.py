@@ -7,8 +7,8 @@ from move_net_pack.m01_define_settings import Settings
 settings = Settings()
 
 # import built-in packages
-import abc, datetime, pathlib
-
+import datetime
+import concurrent.futures as futures
 
 
 ##### DEFINE CLASS TO HOLD REUSABLE FUNCTIONS
@@ -47,6 +47,24 @@ class Utilities:
             return output
         return exection_timer
 
+    @staticmethod
+    def run_in_parallel(iterable, mapper, reducer, cpus=settings.execute_project['cpus']):
+        '''Executes task in parallel processes, applying map/reduce approach'''
+        splits = min([(cpus//5)*4, int(len(iterable)**0.5)])
+
+        # split up iterable to fascilitate parallelization
+        splits = [i%splits for i in range(0,len(iterable))]
+        result = [list() for i in range(min(splits), max(splits)+1)]
+        for i in range(0, len(iterable)):
+            result[splits[i]].append(iterable[i])
+
+        # execute in parallel
+        with futures.ProcessPoolExecutor() as executor:
+            result = executor.map(mapper, result)
+            result = list(result)
+        return reducer(result)
+
+
         
 ##### TEST CLASS INSTANTIATION
 if __name__ == '__main__':
@@ -65,8 +83,17 @@ if __name__ == '__main__':
     def execute_something(n):
         for i in range(0, 10**n): 1+1
         return f'Executed {10**n} loops'
-
     execute_something(n=3)
+
+    ## tests parallelizer
+    def a_mapper(x):
+        return [i*10 for i in x]
+    a_list = list(range(0, 6))
+
+    a_result = utilities.run_in_parallel(
+        iterable=a_list, mapper=a_mapper, reducer=list)
+    print(f'{settings.execute_project['cpus']} cpus, {len(a_list)} iterables')
+    print(a_result)
 
         
 ##########==========##########==========##########==========##########==========
