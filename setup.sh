@@ -13,22 +13,27 @@ if [ ! $(grep ^NAME=  /etc/os-release) == 'NAME="Ubuntu"' ]; then
   exit 1
 fi
 
+# discourage interactivity so scripts runs all the way through
+export DEBIAN_FRONTEND=noninteractive
+
 # update operating system
-if [ $(uname -s) == 'Linux' ]; then
-  sudo DEBIAN_FRONTEND=noninteractive apt-get update -y #qq
-  sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y #qq
-  sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -y #qq
-fi
+sudo apt-get update -y #qq
+sudo apt-get upgrade -y #qq
+sudo apt-get autoremove -y #qq
+sudo apt-get install openjdk-21-jdk -y #qq
 
 # Update python; abort if 3.12 isn't linked to python3
-sudo apt-get install python3.12
-sudo apt-get install python3-pip
-sudo apt-get install python3-venv
+sudo apt-get install python3.12 -y #qq
+sudo apt-get install python3-pip -y #qq
+sudo apt-get install python3-venv -y #qq
 
 if ! python3 -V 2>&1 | grep -q "^Python 3\.12"; then
   echo "ERROR: Script designed to run with Python 3.12"
   exit 2
 fi
+
+# undo the interactivity damper after apt-get installations are done
+unset DEBIAN_FRONTEND
 
 # build and activate virtual environment
 python3.12 -m venv env
@@ -40,6 +45,7 @@ pip install pip --upgrade --no-input #--quiet
 if [ ! -e requirements.txt ]; then
     pip install pandas pyspark igraph dash scikit-learn --no-input #--quiet
     pip install torch torchvision torch-geometric --no-input #--quiet
+    pip install --upgrade certify #--quiet
     pip freeze > requirements.txt
   else
     pip install -r requirements.txt  --no-input #--quiet

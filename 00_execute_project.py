@@ -2,11 +2,11 @@
 
 ##### IMPORT CODE
 # import settings
-from move_net_pack.m01_define_settings import Settings
+from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 ## import general utilities
-from move_net_pack.m02_define_utilities import Utilities
+from move_net_pack.m03_define_utilities import Utilities
 utilities = Utilities()
 
 ## import module specific utilities

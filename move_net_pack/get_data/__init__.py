@@ -3,14 +3,14 @@
 ##### SET UP THE ENVIRONMENT
 
 # import settings
-from move_net_pack.m01_define_settings import Settings
+from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 # import built-in packages
-import pathlib, requests, time
+import certifi, pathlib, requests, time
 
 # import utilities
-from move_net_pack.m02_define_utilities import Utilities
+from move_net_pack.m03_define_utilities import Utilities
 utilities = Utilities()
 
 ##### DEFINE AN ABSTRACT CLASS FOR RETRIEVING DATA FROM THE INTERNET
@@ -82,10 +82,12 @@ class GetData():
             
             # Attempt to download
             self.queried = True
-            response = requests.get(self.roster[i]['url'])
+            write_mode = 'wb' if self.roster[i]['url'].endswith('zip') else 'wt'
+            print('\n\nROSTER:\n\n', self.roster[i]['url'])
+            response = requests.get(self.roster[i]['url'],verify=certifi.where())
             if response.status_code == 200:
                 self.roster[i]['acquired'] = True
-                with open(self.roster[i]['file'], 'wt') as conn:
+                with open(self.roster[i]['file'], write_mode) as conn:
                     conn.write(response.text)
                     conn.close()
             time.sleep(delay)
@@ -93,7 +95,7 @@ class GetData():
         print(self)
         return self
 
-###  TEST CODE
+#####  TEST CODE
 if __name__ == '__main__':
 
     get_data = GetData(
