@@ -3,8 +3,8 @@
 ##### IMPORT NEEDED CODED
 
 # import settings and utilities
-from move_net_pack.m01_define_settings import Settings
-from move_net_pack.m02_define_utilities import Utilities
+from move_net_pack.m02_define_settings import Settings
+from move_net_pack.m03_define_utilities import Utilities
 settings = Settings()
 utilities = Utilities()
 
@@ -73,11 +73,16 @@ class RefineCensusData(RefineData):
         return self
 
     def remove_defects(self):
-        '''remove data defects (caveats, missing, outliers, etc)'''
+        '''remove data defects -- types, missing, outliers, etc.'''
+
+        ## cast variables to proper type
+        print(self.data.head(2))
+        print(self.data.dtypes)
         return self
 
     def derive_data(self):
-        '''derive needed variables from ingredients'''
+        '''derive needed variables from ingredients -- ids, state usps codes,
+        rates, percentages, units, etc.'''
         return self
 
 
@@ -86,7 +91,7 @@ if __name__ == '__main__':
     previous_stage = get_census_data()
     census_data = RefineCensusData(previous_stage=previous_stage)
     census_data = census_data.load_data()
-    #census_data = census_data.remove_defects()
+    census_data = census_data.remove_defects()
     #census_data = census_data.derive_data()
 
 

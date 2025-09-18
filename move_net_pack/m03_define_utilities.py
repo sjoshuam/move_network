@@ -3,7 +3,7 @@
 ##### IMPORT CODE DEPENDENCIES
 
 # import settings
-from move_net_pack.m01_define_settings import Settings
+from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 # import built-in packages

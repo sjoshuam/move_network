@@ -3,11 +3,11 @@
 ##### SET UP THE ENVIRONMENT
 
 # import settings
-from move_net_pack.m01_define_settings import Settings
+from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 # import utilities
-from move_net_pack.m02_define_utilities import Utilities
+from move_net_pack.m03_define_utilities import Utilities
 utilities = Utilities()
 
 # import built-in packages
@@ -33,12 +33,13 @@ class RefineData(abc.ABC):
 
     @abc.abstractmethod
     def remove_defects(self):
-        '''remove data defects (caveats, missing, outliers, etc)'''
+        '''remove data defects (types, missing, outliers, etc)'''
         return self
 
     @abc.abstractmethod
     def derive_data(self):
-        '''derive needed variables from ingredients'''
+        '''derive needed variables from ingredients -- ids, state usps codes,
+        rates, percentages, units, etc...'''
         return self
 
 ##########==========##########==========##########==========##########==========

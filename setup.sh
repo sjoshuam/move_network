@@ -45,6 +45,7 @@ pip install pip --upgrade --no-input #--quiet
 if [ ! -e requirements.txt ]; then
     pip install pandas pyspark igraph dash scikit-learn --no-input #--quiet
     pip install torch torchvision torch-geometric --no-input #--quiet
+    pip install --upgrade certify #--quiet
     pip freeze > requirements.txt
   else
     pip install -r requirements.txt  --no-input #--quiet
