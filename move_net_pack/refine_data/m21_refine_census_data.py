@@ -193,7 +193,7 @@ class RefineCensusData(RefineData):
         self.data[var] = self.data[parts].sum(axis=1)
         self.data = self.data.drop(columns=parts)
 
-        ## Create a three category age breakdown, fixes the pre-2017 rate issue
+        ## Create a three category age breakdown; fix the pre-2017 rate issue
         i = self.data['year'] < 2017
         self.data['pop_age_etc'] = self.data['pop_age_all'].copy()
         for var in ['pop_age_kid', 'pop_age_old']:
@@ -202,13 +202,20 @@ class RefineCensusData(RefineData):
             self.data['pop_age_etc'] -= self.data[var]
         self.data = self.data.drop(columns='pop_age_all')
 
+        # pop_edu_all - pop_edu_ba - pop_edu_ma+ -> pop_edu_etc
+        #  fix the pre-2015 rate issue
+        #  del: pop_edu_all
+        i = self.data['year'] < 2015
+        self.data['pop_edu_etc'] = self.data['pop_edu_all'].copy()
+        for var in ['pop_edu_ba', 'pop_edu_ma+']:
+            self.data.loc[i, var] *= (self.data.loc[i, 'pop_edu_all'] / 100)
+            self.data[var] = self.data[var].round().astype(int)
+            self.data['pop_edu_etc'] -= self.data[var]
+        self.data = self.data.drop(columns='pop_edu_all')
 
         # log(hh_cost_cost / hh_cost_inc) -> hh_cost_cost
 
         # log(hh_cost_inc / median(hh_cost_inc)) -> hh_cost_inc
-
-        # pop_edu_all - pop_edu_ba - pop_edu_ma+ -> pop_edu_etc
-        #  del: pop_edu_all
 
         ## restore alphabetic column sorting
         self.data = self.data[sorted(self.data.columns)]
@@ -217,9 +224,6 @@ class RefineCensusData(RefineData):
         print(self.data.dtypes)
         print(self.data.iloc[range(0+3500, 30000, 3500)].T)
         print(self.data.select_dtypes(include='number').agg(['min', 'median', 'max']).T.round(1))
-
-        for i in range(0, 3):
-            print('TODO: FIX THE RATE ISSUE FOR EDU!!')
 
         return self
 
