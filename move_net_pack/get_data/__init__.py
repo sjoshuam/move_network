@@ -83,7 +83,6 @@ class GetData():
             # Attempt to download
             self.queried = True
             write_mode = 'wb' if self.roster[i]['url'].endswith('zip') else 'wt'
-            print('\n\nROSTER:\n\n', self.roster[i]['url'])
             response = requests.get(self.roster[i]['url'],verify=certifi.where())
             if response.status_code == 200:
                 self.roster[i]['acquired'] = True
