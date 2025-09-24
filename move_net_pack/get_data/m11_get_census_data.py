@@ -23,7 +23,7 @@ census_data_dict = {
     # Population count by employment: Total, Unemployment rate
     'job': ['S2301_C01_001E', 'S2301_C04_002E'],
     # Median income:  Income, Monthly costs
-    'cost': ['S2503_C01_013E', 'S2503_C01_024E'],
+    'cost': ['S2503_C01_013E', 'S2503_C01_024E', 'S2503_C01_028E'],
     # Mean time:  Worker commute
     'commute': ['S0801_C01_046E'],
     }

@@ -131,7 +131,6 @@ class RefineCensusData(RefineData):
         self.interpolate_from_ratio(pop='pop_age_all', var=var)
         self.data[var] = self.data[var].round().astype(int)
 
-
         var = 'pop_unemp_rate'; self.data = self.data.astype({var:float})
         i = self.data[var]<0
         self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
@@ -142,25 +141,18 @@ class RefineCensusData(RefineData):
             self.data[var] = self.data[var].astype(float).round().astype(int)
 
         # household costs and income - floats
-        var = 'hh_cost_inc'; self.data = self.data.astype({var:float})
-        i = self.data[var]<0
-        self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
-
-        var = 'hh_cost_cost'; self.data = self.data.astype({var:float})
-        i = self.data[var]<0
-        self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
+        for var in ['hh_cost_inc', 'hh_cost_cost', 'hh_cost_cost_pre2015']:
+            self.data = self.data.astype({var:float})
+            i = self.data[var]<0
+            self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
 
         #  education variables - positive integers
-        var = 'pop_edu_all'
-        self.data[var] = self.data[var].astype(float).round().astype(int)
-        var = 'pop_edu_ba'
-        self.data[var] = self.data[var].astype(float).round().astype(int)
-        var = 'pop_edu_ma+'
-        self.data[var] = self.data[var].astype(float).round().astype(int)
+        for var in ['pop_edu_all', 'pop_edu_ba', 'pop_edu_ma+']:
+            self.data[var] = self.data[var].astype(float).round().astype(int)
 
         return self
 
-    def derive_data(self):
+    def derive_data(self, display_subset=False):
         '''derive needed variables from ingredients -- ids, state usps codes,
         rates, percentages, units, etc.'''
 
@@ -195,35 +187,63 @@ class RefineCensusData(RefineData):
 
         ## Create a three category age breakdown; fix the pre-2017 rate issue
         i = self.data['year'] < 2017
+        parts = ['pop_age_all', 'pop_age_kid', 'pop_age_old']
+        for i_part in parts:
+            self.data[i_part] = self.data[i_part].astype(float)
         self.data['pop_age_etc'] = self.data['pop_age_all'].copy()
         for var in ['pop_age_kid', 'pop_age_old']:
             self.data.loc[i, var] *= (self.data.loc[i, 'pop_age_all'] / 100)
             self.data[var] = self.data[var].round().astype(int)
             self.data['pop_age_etc'] -= self.data[var]
+        for i_part in parts + ['pop_age_etc']:
+            self.data[i_part] = self.data[i_part].round().astype(int)
         self.data = self.data.drop(columns='pop_age_all')
 
         # pop_edu_all - pop_edu_ba - pop_edu_ma+ -> pop_edu_etc
-        #  fix the pre-2015 rate issue
         #  del: pop_edu_all
         i = self.data['year'] < 2015
+        parts = ['pop_edu_ba', 'pop_edu_ma+', 'pop_edu_all']
+        for i_part in parts:
+            self.data[i_part] = self.data[i_part].astype(float)
         self.data['pop_edu_etc'] = self.data['pop_edu_all'].copy()
         for var in ['pop_edu_ba', 'pop_edu_ma+']:
             self.data.loc[i, var] *= (self.data.loc[i, 'pop_edu_all'] / 100)
             self.data[var] = self.data[var].round().astype(int)
             self.data['pop_edu_etc'] -= self.data[var]
+        for i_part in parts + ['pop_edu_etc']:
+            self.data[i_part] = self.data[i_part].round().astype(int)
         self.data = self.data.drop(columns='pop_edu_all')
 
-        # log(hh_cost_cost / hh_cost_inc) -> hh_cost_cost
+        # hh_cost_cost / hh_cost_inc -> hh_cost_cost
+        ## Before 2015, the correct variable is S2503_C01_028
+        var = 'hh_cost_cost'
+        i = self.data['year'] < 2015
+        self.data.loc[i,var] = self.data.loc[i,'hh_cost_cost_pre2015']
+        self.data[var] = 12 * self.data[var].astype(float)
+        self.data[var] = (self.data[var] / self.data['hh_cost_inc']).round(3)
+        self.data = self.data.drop(columns='hh_cost_cost_pre2015')
 
-        # log(hh_cost_inc / median(hh_cost_inc)) -> hh_cost_inc
+
+        # z_score(hh_cost_inc) -> hh_cost_inc
+        var = 'hh_cost_inc'
+        self.data['hh_temp_mean'] = self.data.groupby('year'
+            )['hh_cost_inc'].transform('mean').round()
+        self.data['hh_temp_std'] = self.data.groupby('year'
+            )['hh_cost_inc'].transform('std').round()
+        self.data[var] -= self.data['hh_temp_mean']
+        self.data[var] /= self.data['hh_temp_std']
+        self.data[var] =self.data[var].round(3)
+        self.data = self.data.drop(columns=['hh_temp_mean', 'hh_temp_std'])
 
         ## restore alphabetic column sorting
         self.data = self.data[sorted(self.data.columns)]
         self.data = self.data.set_index(['year','id_county']).sort_index()
 
-        print(self.data.dtypes)
-        print(self.data.iloc[range(0+3500, 30000, 3500)].T)
-        print(self.data.select_dtypes(include='number').agg(['min', 'median', 'max']).T.round(1))
+        ## display a subset of data if needed for dev
+        if display_subset:
+            county_index = [(i, 'IL031') for i in range(2011, 2020, 2)]
+            county_index += [(i, 'OH041') for i in range(2012, 2020, 3)]
+            print(self.data.loc[county_index].T)
 
         return self
 
@@ -233,7 +253,7 @@ if __name__ == '__main__':
     previous_stage = get_census_data()
     census_data = RefineCensusData(previous_stage=previous_stage)
     census_data.get_data_dictionary('acs_dict').load_data()
-    census_data = census_data.remove_defects().derive_data()
+    census_data.remove_defects().derive_data()
 
 
 

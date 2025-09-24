@@ -5,21 +5,22 @@ acs_dict = {
     'columns': [
     ('state'         ,'fips_state'  ,'states'  , 'id'   ,str),
     ('county'        ,'fips_county' ,'counties', 'id'   ,str),
-    ('S0101_C01_001E','pop_age_all' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_002E','pop_age_00-04' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_003E','pop_age_05-09' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_004E','pop_age_10-14' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_015E','pop_age_65-69' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_016E','pop_age_70-74' ,'persons' ,'sum'   ,float),
-    ('S0101_C01_017E','pop_age_75-79' ,'persons' ,'sum'   ,float),
-    ('S1501_C01_006E','pop_edu_all' ,'persons' ,'sum'   ,float),#
-    ('S1501_C01_012E','pop_edu_ba'  ,'persons' ,'sum'   ,float),#
-    ('S1501_C01_013E','pop_edu_ma+' ,'persons' ,'sum'   ,float),#
-    ('S2301_C01_001E','pop_unemp_all','persons' ,'sum'  ,float),#
-    ('S2301_C04_002E','pop_unemp_rate','persons','sum'  ,float),#
-    ('S2503_C01_013E','hh_cost_inc' ,'dollars' ,'median',float),#
-    ('S2503_C01_024E','hh_cost_cost','dollars' ,'median',float),#
-    ('S0801_C01_046E','commute_time','minutes' ,'median',float),#
+    ('S0101_C01_001E','pop_age_all' ,'persons' ,'sum'   ,int),
+    ('S0101_C01_002E','pop_age_00-04' ,'persons' ,'sum' ,int),
+    ('S0101_C01_003E','pop_age_05-09' ,'persons' ,'sum' ,int),
+    ('S0101_C01_004E','pop_age_10-14' ,'persons' ,'sum' ,int),
+    ('S0101_C01_015E','pop_age_65-69' ,'persons' ,'sum' ,int),
+    ('S0101_C01_016E','pop_age_70-74' ,'persons' ,'sum' ,int),
+    ('S0101_C01_017E','pop_age_75-79' ,'persons' ,'sum' ,int),
+    ('S1501_C01_006E','pop_edu_all' ,'persons' ,'sum'   ,int),
+    ('S1501_C01_012E','pop_edu_ba'  ,'persons' ,'sum'   ,int),
+    ('S1501_C01_013E','pop_edu_ma+' ,'persons' ,'sum'   ,int),
+    ('S2301_C01_001E','pop_unemp_all','persons' ,'sum'  ,int),
+    ('S2301_C04_002E','pop_unemp_rate','persons','sum'  ,float),
+    ('S2503_C01_013E','hh_cost_inc' ,'dollars' ,'median',float),
+    ('S2503_C01_024E','hh_cost_cost','dollars' ,'median',float),
+    ('S2503_C01_028E','hh_cost_cost_pre2015', 'dollars', 'median',float),
+    ('S0801_C01_046E','commute_time','minutes' ,'median',float),
     ]}
 
 # Create data dictionary for IRS SOI county-to-county movement data
