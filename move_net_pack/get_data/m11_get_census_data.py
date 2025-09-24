@@ -14,19 +14,18 @@ utilities = Utilities()
 ## import module specific utilities
 from move_net_pack.get_data import GetData
 
-
 ##### DEFINE CENSUS DATA NEEDS
 census_data_dict = {
-    # Population count by age: Total, Under 18, Over 64
-    'age': ['S0101_C01_001E', 'S0101_C01_006E', 'S0101_C01_030E'],
+    # Population count by age: total, 0-4, 5-9, 10-14, 65-69, 70-74, 75-79
+    'age': ['S0101_C01_001E', 'S0101_C01_002E', 'S0101_C01_003E', 'S0101_C01_004E', 'S0101_C01_015E', 'S0101_C01_016E', 'S0101_C01_017E'],
     # Population count by degree: Total, Bachelors, Graduate
-    'edu': ['S1501_C01_001E', 'S1501_C01_015E', 'S1501_C01_016E'],
-    # Population count by employment: Total, Employed, Unemployed
-    'job': ['S2301_C01_001E', 'S2301_C01_002E', 'S2301_C01_003E'],
-    # Median income:  Income, Rent Costs, Homeowner Costs
-    'cost': ['S1901_C01_012E', 'S2503_C01_001E', 'S2506_C01_001E'],
-    # Median time:  Worker commute
-    'commute': ['S0801_C01_049E'],
+    'edu': ['S1501_C01_006E', 'S1501_C01_012E', 'S1501_C01_013E'],
+    # Population count by employment: Total, Unemployment rate
+    'job': ['S2301_C01_001E', 'S2301_C04_002E'],
+    # Median income:  Income, Monthly costs
+    'cost': ['S2503_C01_013E', 'S2503_C01_024E', 'S2503_C01_028E'],
+    # Mean time:  Worker commute
+    'commute': ['S0801_C01_046E'],
     }
 census_data_dict = {
     i:','.join(census_data_dict[i]) for i in census_data_dict.keys()}
