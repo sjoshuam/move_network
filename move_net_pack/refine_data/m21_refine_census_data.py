@@ -15,7 +15,7 @@ from move_net_pack.get_data.m11_get_census_data import get_census_data
 from move_net_pack.refine_data.__init__ import RefineData
 
 ## import built-in code
-import json
+import json, pickle
 
 # import data processing code and session
 import pandas as pd
@@ -27,17 +27,6 @@ class RefineCensusData(RefineData):
 
     def __init__(self, previous_stage):
            super().__init__(previous_stage)
-           self.status = {
-               'load_data': False,
-               'remove_defects': False,
-               'derive_data': False,
-           }
-
-    def __str__(self):
-        msg = ['\n== RefineCensusData Status ========']
-        for i in self.status.keys():
-            msg += ['  '+i+': '+('EXECUTED' if self.status[i] else 'not executed')]
-        return '\n'.join(msg) + '\n'
 
     @staticmethod
     def load_data_mapper(file_info):
@@ -78,25 +67,33 @@ class RefineCensusData(RefineData):
 
     def load_data(self):
         '''Read in census file and process'''
+
+        # Evaluate initial status
         file_urls = [(i, self.roster[i]['file']) for i in self.roster.keys()]
+
+        # iterate through raw data files
         self.data = utilities.run_in_parallel(
             iterable=file_urls,
             mapper=self.load_data_mapper,
             reducer=self.load_data_reducer,
             )
+        self.data = self.data.reset_index()
+        
+        ## Evaluate final status
         self.status['load_data'] = True
+        print(self)
+
         return self
 
     def remove_defects(self):
         '''remove data defects -- types, missing, outliers, etc.'''
 
-        # confirm that load_data was executed
+        # Evaluate initial status
         assert self.status['load_data'], 'ERROR: Execute load_data() first.'
 
         # give all variables human-interpretable names
         x = {'column':'year','name':'year','unit':'years','aggregate':'id','type':int}
         self.data_dict = pd.concat([pd.DataFrame([x]), self.data_dict])
-        self.data = self.data.reset_index()
         self.data_dict['order'] = pd.Categorical(
             self.data_dict['column'], categories=self.data.columns)
         self.data_dict = self.data_dict.sort_values('order')
@@ -117,8 +114,8 @@ class RefineCensusData(RefineData):
         self.data['fips_state'] = self.data['fips_state'].str.zfill(2)
         self.data['fips_county'] = self.data['fips_county'].str.zfill(3)
 
-        # population -  positive int; will use as needed to interpolate other
-        var = 'pop_age_all'; self.data = self.data.astype({var:int})
+        # population -  positive float; will use as needed to interpolate other
+        var = 'pop_age_all'; self.data = self.data.astype({var:float})
         
         # commute times - positive float
         var = 'commute_time'; self.data = self.data.astype({var:float})
@@ -129,16 +126,16 @@ class RefineCensusData(RefineData):
         var = 'pop_unemp_all'
         self.data[var] = self.data[var].astype(float)
         self.interpolate_from_ratio(pop='pop_age_all', var=var)
-        self.data[var] = self.data[var].round().astype(int)
 
         var = 'pop_unemp_rate'; self.data = self.data.astype({var:float})
         i = self.data[var]<0
         self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
         self.data[var] /= 100
 
-        # age variables - positive int
-        for var in ['pop_age_00-04', 'pop_age_05-09', 'pop_age_10-14', 'pop_age_65-69', 'pop_age_70-74', 'pop_age_75-79']:
-            self.data[var] = self.data[var].astype(float).round().astype(int)
+        # age variables - positive floats
+        for var in ['pop_age_00-04', 'pop_age_05-09', 'pop_age_10-14',
+            'pop_age_65-69', 'pop_age_70-74', 'pop_age_75-79']:
+            self.data[var] = self.data[var].astype(float)
 
         # household costs and income - floats
         for var in ['hh_cost_inc', 'hh_cost_cost', 'hh_cost_cost_pre2015']:
@@ -146,15 +143,22 @@ class RefineCensusData(RefineData):
             i = self.data[var]<0
             self.data[var] = self.data[var].mask(i).fillna(self.data[var].median())
 
-        #  education variables - positive integers
+        #  education variables - positive floats
         for var in ['pop_edu_all', 'pop_edu_ba', 'pop_edu_ma+']:
-            self.data[var] = self.data[var].astype(float).round().astype(int)
+            self.data[var] = self.data[var].astype(float)
+
+        # Evaluate final status
+        self.status['remove_defects'] = True
+        print(self)
 
         return self
 
-    def derive_data(self, display_subset=False):
+    def derive_data(self):
         '''derive needed variables from ingredients -- ids, state usps codes,
         rates, percentages, units, etc.'''
+
+        # confirm that remove_defects was executed
+        assert self.status['remove_defects'], 'ERROR: Execute remove_defects() first.'
 
         # usps(fips_state) + fips_county -> id_county
         self.data = self.data.merge(
@@ -166,7 +170,6 @@ class RefineCensusData(RefineData):
         #  del: pop_unemp_rate
         var = 'pop_job_not'
         self.data[var] = self.data['pop_unemp_all'] * self.data['pop_unemp_rate']
-        self.data[var] = self.data[var].round().astype(int)
         self.data = self.data.drop(columns='pop_unemp_rate')
 
         # pop_unemp_all - pop_job_not -> pop_job_job
@@ -188,30 +191,20 @@ class RefineCensusData(RefineData):
         ## Create a three category age breakdown; fix the pre-2017 rate issue
         i = self.data['year'] < 2017
         parts = ['pop_age_all', 'pop_age_kid', 'pop_age_old']
-        for i_part in parts:
-            self.data[i_part] = self.data[i_part].astype(float)
         self.data['pop_age_etc'] = self.data['pop_age_all'].copy()
         for var in ['pop_age_kid', 'pop_age_old']:
             self.data.loc[i, var] *= (self.data.loc[i, 'pop_age_all'] / 100)
-            self.data[var] = self.data[var].round().astype(int)
             self.data['pop_age_etc'] -= self.data[var]
-        for i_part in parts + ['pop_age_etc']:
-            self.data[i_part] = self.data[i_part].round().astype(int)
         self.data = self.data.drop(columns='pop_age_all')
 
         # pop_edu_all - pop_edu_ba - pop_edu_ma+ -> pop_edu_etc
         #  del: pop_edu_all
         i = self.data['year'] < 2015
         parts = ['pop_edu_ba', 'pop_edu_ma+', 'pop_edu_all']
-        for i_part in parts:
-            self.data[i_part] = self.data[i_part].astype(float)
         self.data['pop_edu_etc'] = self.data['pop_edu_all'].copy()
         for var in ['pop_edu_ba', 'pop_edu_ma+']:
             self.data.loc[i, var] *= (self.data.loc[i, 'pop_edu_all'] / 100)
-            self.data[var] = self.data[var].round().astype(int)
             self.data['pop_edu_etc'] -= self.data[var]
-        for i_part in parts + ['pop_edu_etc']:
-            self.data[i_part] = self.data[i_part].round().astype(int)
         self.data = self.data.drop(columns='pop_edu_all')
 
         # hh_cost_cost / hh_cost_inc -> hh_cost_cost
@@ -219,10 +212,8 @@ class RefineCensusData(RefineData):
         var = 'hh_cost_cost'
         i = self.data['year'] < 2015
         self.data.loc[i,var] = self.data.loc[i,'hh_cost_cost_pre2015']
-        self.data[var] = 12 * self.data[var].astype(float)
-        self.data[var] = (self.data[var] / self.data['hh_cost_inc']).round(3)
+        self.data[var] = (self.data[var]*12) / self.data['hh_cost_inc']
         self.data = self.data.drop(columns='hh_cost_cost_pre2015')
-
 
         # z_score(hh_cost_inc) -> hh_cost_inc
         var = 'hh_cost_inc'
@@ -232,18 +223,25 @@ class RefineCensusData(RefineData):
             )['hh_cost_inc'].transform('std').round()
         self.data[var] -= self.data['hh_temp_mean']
         self.data[var] /= self.data['hh_temp_std']
-        self.data[var] =self.data[var].round(3)
         self.data = self.data.drop(columns=['hh_temp_mean', 'hh_temp_std'])
+
+        ## round off excess precision
+        for i in self.data.columns:
+            try: self.data[i] = self.data[i].round(3)
+            except: pass
 
         ## restore alphabetic column sorting
         self.data = self.data[sorted(self.data.columns)]
         self.data = self.data.set_index(['year','id_county']).sort_index()
 
-        ## display a subset of data if needed for dev
-        if display_subset:
-            county_index = [(i, 'IL031') for i in range(2011, 2020, 2)]
-            county_index += [(i, 'OH041') for i in range(2012, 2020, 3)]
-            print(self.data.loc[county_index].T)
+        ## write data to disk
+        with open('output/census_data.pkl', 'wb') as conn:
+            pickle.dump(self.data, conn)
+        self.data_url = 'output/census_data.pkl'
+
+        # update status
+        self.status['derive_data'] = True
+        print(self)
 
         return self
 
@@ -252,9 +250,7 @@ class RefineCensusData(RefineData):
 if __name__ == '__main__':
     previous_stage = get_census_data()
     census_data = RefineCensusData(previous_stage=previous_stage)
-    census_data.get_data_dictionary('acs_dict').load_data()
-    census_data.remove_defects().derive_data()
-
+    census_data.get_data_dict('acs_dict').execute()
 
 
 ##########==========##########==========##########==========##########==========

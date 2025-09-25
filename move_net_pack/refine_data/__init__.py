@@ -24,9 +24,43 @@ class RefineData(abc.ABC):
         self.previous_stage = previous_stage
         self.roster = previous_stage.roster
         self.data_dict = None
+        self.status = {
+            i:False for i in ['load_data', 'remove_defects', 'derive_data']}
 
-    def __str__():
-        pass
+    @utilities.govern_print_verbosity
+    def __str__(self):
+
+        ## set up basic template
+        msg = ['\n','[PIPELINE]','-','[SUBSET]','-','[DISTRIBUTION]','-',
+            '[SHAPE]','-','\n']
+
+        ## capture information
+        try:
+            # simply pipeline status
+            msg[2] = list()
+            for i in self.status.keys():
+                if self.status[i]: msg[2] += [i]
+            msg[2] = ' -> '.join(msg[2])
+
+            # capture data subset
+            index = self.data.shape[0] // 9
+            index = range(index, self.data.shape[0], index)
+            msg[4] = utilities.capture_output(self.data.iloc[index].T)
+
+            # capture ranges
+            f = [0, .25, .5, .75, 1]
+            f = {i:lambda x,q=i: x.quantile(q) for i in f}
+            msg[6] = self.data.select_dtypes(include='number').apply(f.values())
+            msg[6].index = f.keys()
+            msg[6] = utilities.capture_output(msg[6].T.round(1))
+
+            # capture basic shape
+            msg[8] = str(self.data.shape)
+
+        except Exception as xcept:
+            msg = [f'N/A']
+        return '\n'.join(msg)
+        
 
     @abc.abstractmethod
     def load_data(self):
@@ -54,7 +88,16 @@ class RefineData(abc.ABC):
         self.data = self.data.drop(columns=temp)
         return self
     
-    def get_data_dictionary(self, data_dict:str, settings=settings):
+    @staticmethod
+    def assess__defects(dat: pd.DataFrame) -> str:
+        'Assess how many cells having missing or outlier data'
+        test = dat.apply(pd.to_numeric, errors = 'coerce').apply(
+            lambda x: ((x-x.mean())/x.std()).abs()>=3)
+        test = (test.isna().sum().sum(), test.sum().sum())
+        test = '{} missing/{} outliers'.format(*test)
+        return test
+    
+    def get_data_dict(self, data_dict:str, settings=settings):
         '''Unpack data dictionary and attach to class instance'''
 
         # unpack dictionary for dataset
@@ -73,8 +116,9 @@ class RefineData(abc.ABC):
 
         return self
 
-
-
-
+    def execute(self):
+        '''Run entire class pipeline'''
+        self.load_data().remove_defects().derive_data()
+        return self
 
 ##########==========##########==========##########==========##########==========

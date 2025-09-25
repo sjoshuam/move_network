@@ -15,6 +15,8 @@ from move_net_pack.get_data.m12_get_move_data import GetIRSData
 from move_net_pack.get_data.m13_get_geography_data import GetGeoData
 from move_net_pack.get_data.m14_get_polity_data import GetPolityData
 
+from move_net_pack.refine_data.m21_refine_census_data import RefineCensusData
+
 ##### DEFINE TOP-LEVEL CLASS
 
 class MoveNetwork:
@@ -41,17 +43,18 @@ class MoveNetwork:
 
     def get_data(self):
         '''Stage 1.0: Get Data'''
-        census_data = get_census_data()
-        irs_data = GetIRSData().adjust_irs_api_links().query_api()
-        geo_data = GetGeoData().query_api()
-        polity_data = GetPolityData().adjust_polity_roster().query_api()
+        self.census_data = get_census_data()
+        self.irs_data = GetIRSData().adjust_irs_api_links().query_api()
+        self.geo_data = GetGeoData().query_api()
+        self.polity_data = GetPolityData().adjust_polity_roster().query_api()
         self.status['get_data'] = True
         return None
 
     def refine_data(self):
         '''Stage 2.0: Refine Data'''
         assert self.status['get_data'], 'ERROR: run get_data() first'
-
+        self.census_data = RefineCensusData(previous_stage=self.census_data)
+        self.census_data.get_data_dict('acs_dict').execute()
         self.status['refine_data'] = True
         return None
 
@@ -88,6 +91,7 @@ class MoveNetwork:
 if __name__ == '__main__':
     move_network = MoveNetwork()
     move_network.get_data()
+    move_network.refine_data()
     print(move_network)
 
 

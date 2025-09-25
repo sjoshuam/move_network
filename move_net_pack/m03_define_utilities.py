@@ -7,7 +7,7 @@ from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 # import built-in packages
-import datetime
+import datetime, sys, io
 import concurrent.futures as futures
 
 
@@ -63,6 +63,14 @@ class Utilities:
             result = executor.map(mapper, result)
             result = list(result)
         return reducer(result)
+    
+    @staticmethod
+    def capture_output(x) -> str:
+            sys.stdout = io.StringIO()
+            print(x)
+            x = sys.stdout.getvalue()
+            sys.stdout = sys.__stdout__
+            return x
 
 
         
