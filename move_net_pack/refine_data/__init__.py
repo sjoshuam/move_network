@@ -21,8 +21,8 @@ class RefineData(abc.ABC):
 
     # initialize class
     def __init__(self, previous_stage):
-        self.previous_stage = previous_stage
         self.roster = previous_stage.roster
+        del previous_stage
         self.data_dict = None
         self.status = {
             i:False for i in ['load_data', 'remove_defects', 'derive_data']}
@@ -32,7 +32,7 @@ class RefineData(abc.ABC):
 
         ## set up basic template
         msg = ['\n','[PIPELINE]','-','[SUBSET]','-','[DISTRIBUTION]','-',
-            '[SHAPE]','-','\n']
+            '[SHAPE]','-','[NA COUNT]','-','\n']
 
         ## capture information
         try:
@@ -41,6 +41,9 @@ class RefineData(abc.ABC):
             for i in self.status.keys():
                 if self.status[i]: msg[2] += [i]
             msg[2] = ' -> '.join(msg[2])
+
+            # capture basic shape
+            msg[8] = str(self.data.shape)
 
             # capture data subset
             index = self.data.shape[0] // 9
@@ -54,11 +57,11 @@ class RefineData(abc.ABC):
             msg[6].index = f.keys()
             msg[6] = utilities.capture_output(msg[6].T.round(1))
 
-            # capture basic shape
-            msg[8] = str(self.data.shape)
+            # count NA values by column
+            msg[10] = utilities.capture_output(self.data.isna().sum())
 
         except Exception as xcept:
-            msg = [f'N/A']
+            pass
         return '\n'.join(msg)
         
 

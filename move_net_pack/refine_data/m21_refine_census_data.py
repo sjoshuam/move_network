@@ -1,4 +1,4 @@
-'''Move data defects and derive columns needed for analysis'''
+'''Remove data defects and derive columns needed for analysis -- census data'''
 
 ##### IMPORT NEEDED CODED
 

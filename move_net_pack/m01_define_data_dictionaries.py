@@ -27,13 +27,14 @@ acs_dict = {
 soi_dict = {
     'header': ('columns', 'name', 'unit', 'aggregate', 'type'),
     'columns': [
-        ('Y1_STATEFIPS' , 'y1_fips_state'  , 'state'  , 'id',  str),
-        ('Y1_COUNTYFIPS', 'y1_fips_county' , 'county' , 'id',  str),
-        ('Y2_STATEFIPS' , 'y2_fips_state'  , 'state'  , 'id',  str),
-        ('Y2_COUNTYFIPS', 'y2_fips_county' , 'county' , 'id',  str),
-        ('N1'           , 'return_count'   , 'returns', 'sum', int),
-        ('N2'           , 'person_count'   , 'persons', 'sum', int),
-        ('AGI'          , 'income_total'   , 'dollars', 'sum', int),
+        ('y1_statefips' , 'y1_fips_state'  , 'state'  , 'id',  str),
+        ('y1_countyfips', 'y1_fips_county' , 'county' , 'id',  str),
+        ('y2_statefips' , 'y2_fips_state'  , 'state'  , 'id',  str),
+        ('y2_countyfips', 'y2_fips_county' , 'county' , 'id',  str),
+        ('n1'           , 'return_count'   , 'returns', 'sum', float),
+        ('n2'           , 'person_count'   , 'persons', 'sum', float),
+        ('agi'          , 'income_total'   , 'dollars', 'sum', float),
+        ('year'         , 'year'           , 'years'  , 'id',  int),
     ]
 }
 

@@ -32,12 +32,16 @@ class GetIRSData(GetData):
             fix = str(i-2000).zfill(2) + str(i-1999).zfill(2)
             self.roster[i]['url'] = self.roster[i]['url'].replace('[y0y1]', fix)
         return self
+    
+    def execute(self):
+        '''Execute the pipeline from end to end'''
+        return self.adjust_irs_api_links().query_api()
 
 
 ##### TEST THE CODE
 if __name__ == '__main__':
 
     ## retrive irs data
-    irs_data = GetIRSData().adjust_irs_api_links().query_api()
+    irs_data = GetIRSData().execute()
 
 ##########==========##########==========##########==========##########==========

@@ -25,7 +25,7 @@ class Utilities:
          way to silence those messages once the code is developed.'''
 
         def silent(*args, **kwargs):
-            return ""
+            return "..."
         
         if settings.execute_project['verbose']:
             return str_method
