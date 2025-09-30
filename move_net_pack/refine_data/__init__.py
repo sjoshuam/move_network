@@ -24,6 +24,7 @@ class RefineData(abc.ABC):
         self.roster = previous_stage.roster
         del previous_stage
         self.data_dict = None
+        self.data = None
         self.status = {
             i:False for i in ['load_data', 'remove_defects', 'derive_data']}
 

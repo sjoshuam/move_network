@@ -235,9 +235,11 @@ class RefineCensusData(RefineData):
         self.data = self.data.set_index(['year','id_county']).sort_index()
 
         ## write data to disk
-        with open('output/census_data.pkl', 'wb') as conn:
+        data_url = 'output/census_data.pkl'
+        with open(data_url, 'wb') as conn:
             pickle.dump(self.data, conn)
-        self.data_url = 'output/census_data.pkl'
+        self.data_url = data_url
+        self.data = None
 
         # update status
         self.status['derive_data'] = True

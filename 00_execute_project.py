@@ -16,6 +16,8 @@ from move_net_pack.get_data.m13_get_geography_data import GetGeoData
 from move_net_pack.get_data.m14_get_polity_data import GetPolityData
 
 from move_net_pack.refine_data.m21_refine_census_data import RefineCensusData
+from move_net_pack.refine_data.m22_refine_move_data import RefineMoveData
+
 
 ##### DEFINE TOP-LEVEL CLASS
 
@@ -47,16 +49,22 @@ class MoveNetwork:
         self.irs_data = GetIRSData().adjust_irs_api_links().query_api()
         self.geo_data = GetGeoData().query_api()
         self.polity_data = GetPolityData().adjust_polity_roster().query_api()
+
         self.status['get_data'] = True
-        return None
+        return self
 
     def refine_data(self):
         '''Stage 2.0: Refine Data'''
         assert self.status['get_data'], 'ERROR: run get_data() first'
+
         self.census_data = RefineCensusData(previous_stage=self.census_data)
         self.census_data.get_data_dict('acs_dict').execute()
+
+        self.census_data = RefineMoveData(previous_stage=self.irs_data)
+        self.census_data.get_data_dict('soi_dict').execute()
+
         self.status['refine_data'] = True
-        return None
+        return self
 
     def make_object(self):
         '''Stage 3.0: Make Object'''

@@ -14,12 +14,15 @@ from move_net_pack.get_data.m12_get_move_data import GetIRSData
 # import abstract class for refining data
 from move_net_pack.refine_data.__init__ import RefineData
 
-## import add-on packages
+# import built-in python packages
+import pickle
+
+# import add-on packages
 import pandas as pd
 
 ##### DEFINE KEY CLASS
 
-class RefineIRSData(RefineData):
+class RefineMoveData(RefineData):
     '''Load, remove defects and derive needed variables from migration data'''
 
     def __init__(self, previous_stage):
@@ -107,6 +110,13 @@ class RefineIRSData(RefineData):
             self.data.loc[i,'person/return']
         self.data.loc[i, 'income_total'] = self.data.loc[i, 'person_count'] *\
             self.data.loc[i,'income/person']
+
+        # interpolate other misisng incomes
+        i = self.data['income_total'].isna()
+        self.data.loc[i, 'income_total'] = self.data.loc[i, 'person_count'] *\
+            self.data.loc[i, 'income/person']
+        
+        # clean up interpolations
         self.data = self.data.round({'person_count':0, 'income_total':0})
         self.data = self.data.drop(columns=['person/return', 'income/person'])
 
@@ -139,11 +149,19 @@ class RefineIRSData(RefineData):
         ## create edge id and set index
         self.data['id_edge'] = self.data['y1_id_county'] +'-'+ self.data['y2_id_county']
         self.data = self.data.set_index(['year', 'id_edge']).sort_index()
-        
 
         # Evaluate final status and return
         self.status['derive_data'] = True
         print(self)
+
+        # save data and store link
+        data_url = 'output/move_data.pkl'
+        with open(data_url, 'wb') as conn:
+            pickle.dump(self.data, conn)
+            conn.close
+        self.data_url = data_url
+        self.data = None
+
         return self
 
     def execute(self):
@@ -154,12 +172,8 @@ class RefineIRSData(RefineData):
 ##### TEST KEY CLASS
 if __name__ == '__main__':
     previous_stage = GetIRSData().execute()
-    irs_data = RefineIRSData(previous_stage=previous_stage)
+    irs_data = RefineMoveData(previous_stage=previous_stage)
     irs_data.execute()
-
-    print('TODO: replace self.data with url after saving data (all)')
-    print('TODO: move the reset_index into reducer (census)')
-    print('TODO: invesgitate remaining NA in income_total')
 
     print('TODO (reshape_data): Add a reasonable amount of zeroes to dataset to represent non-edges -- maybe just add counties in a specific radius?')
 
