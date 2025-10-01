@@ -46,19 +46,19 @@ If a major US metro area declined:
  [Link to Kanban Board](https://github.com/users/sjoshuam/projects/4/views/1)
 
 00. execute_project
-  + [ ] 00 execute_project.py
-  + [ ] 01 define_settings.py
-  + [ ] 02 define_utilities.py
+  + [-] 00 execute_project.py
+  + [-] 01 define_settings.py
+  + [-] 02 define_utilities.py
 10. get_data
-  + [ ] 11 get_demography_data.py
-  + [ ] 12 get_move_data.py
-  + [ ] 13 get_geography_data.py
+  + [X] 11 get_demography_data.py
+  + [X] 12 get_move_data.py
+  + [X] 13 get_geo_data.py
   + [ ] 14 get_polity_data.py
   + [ ] 15 get_climate_data.py (after MVP)
 20. refine_data
-  + [ ] 21 refine_demography_data.py
-  + [ ] 22 refine_move_data.py
-  + [ ] 23 refine_geography_data.py
+  + [X] 21 refine_demography_data.py
+  + [X] 22 refine_move_data.py
+  + [X] 23 refine_geo_data.py
   + [ ] 24 refine_polity_data.py
   + [ ] 25 refine_climate_data.py (after mvp)
 30. make_object
