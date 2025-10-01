@@ -27,6 +27,10 @@ class GetGeoData(GetData):
             api_query='/geo/tiger/TIGER{year}/COUNTY/tl_{year}_us_county.zip',
             print_name='tiger_geo'
             )
+
+    def execute(self):
+        '''Execute the pipeline from end to end'''
+        return self.query_api()
         
 ##### TEST THE CODE
 if __name__ == '__main__':

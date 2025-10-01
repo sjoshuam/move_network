@@ -29,6 +29,10 @@ class RefineGeoData(RefineData):
 
     def __init__(self, previous_stage):
         super().__init__(previous_stage)
+        self.data = {
+            'geo_data':'output/geo_data.pkl',
+            'county_distance':'output/county_distance.pkl'
+            }
 
     @staticmethod
     def load_data_mapper(file_urls:list) -> gpd.GeoDataFrame:
@@ -103,7 +107,7 @@ class RefineGeoData(RefineData):
         with open(url, 'wb') as conn:
             pickle.dump(self.data, conn)
             conn.close()
-        self.data = url
+        self.data = {'geo_data':url}
 
         return self
     
@@ -142,6 +146,7 @@ class RefineGeoData(RefineData):
         with open(url, 'wb') as conn:
             pickle.dump(distances, conn)
             conn.close()
+        self.data['county_distance'] = url
         
         # evaluate final status
         print('[DISTANCES]\n', distances.iloc[0:5, 0:5])

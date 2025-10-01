@@ -27,6 +27,7 @@ class RefineCensusData(RefineData):
 
     def __init__(self, previous_stage):
            super().__init__(previous_stage)
+           self.data = {'census_data':'output/census_data.pkl'}
 
     @staticmethod
     def load_data_mapper(file_info):
@@ -223,8 +224,7 @@ class RefineCensusData(RefineData):
         data_url = 'output/census_data.pkl'
         with open(data_url, 'wb') as conn:
             pickle.dump(self.data, conn)
-        self.data_url = data_url
-        self.data = None
+        self.data = self.data = {'census_data': data_url}
 
         return self
     
