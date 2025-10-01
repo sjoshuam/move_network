@@ -52,24 +52,6 @@ class RefineMoveData(RefineData):
         dat = pd.concat(dat, axis='rows').reset_index(drop=True)
         return dat
 
-    def load_data(self):
-        '''Read in census file and process'''
-
-        # Evaluate initial status
-        file_urls = [(i, self.roster[i]['file']) for i in self.roster.keys()]
-
-        # iterate through raw data files
-        self.data = utilities.run_in_parallel(
-            iterable=file_urls,
-            mapper=self.load_data_mapper,
-            reducer=self.load_data_reducer,
-            )
-        
-        # Evaluate final status and return
-        self.status['load_data'] = True
-        print(self)
-        return self
-
     def remove_defects(self):
         '''Remove data defects (types, missing, outliers, etc)'''
 
@@ -133,15 +115,11 @@ class RefineMoveData(RefineData):
         assert self.status['remove_defects'], 'ERROR: Execute remove_defects() first.'
 
         # create node ids
-        state_dict = pd.DataFrame(
-            settings.data_dict['state_dict']['columns'],
-            columns=settings.data_dict['state_dict']['header']
-        ).drop(columns='name_state')
-
         for i in ['y1_','y2_']:
             self.data.columns = [j.replace(i, '') for j in self.data.columns]
             self.data = self.data.merge(
-                right = state_dict, how = 'left', on='fips_state')
+                right = self.state_dict.drop(columns='name_state'),
+                how = 'left', on='fips_state')
             self.data = self.data.rename(columns={'id_state':(i+'id_state')})
             self.data[i+'id_county'] = self.data[i+'id_state'] + self.data['fips_county']
             self.data = self.data.drop(columns=['fips_state', 'fips_county'])
@@ -166,16 +144,13 @@ class RefineMoveData(RefineData):
 
     def execute(self):
         '''Execute pipeline from end to end'''
-        self.get_data_dict('soi_dict')
-        return self.load_data().remove_defects().derive_data()
+        self.get_data_dict('soi_dict').load_data().remove_defects().derive_data()
+        return self
 
 ##### TEST KEY CLASS
 if __name__ == '__main__':
     previous_stage = GetIRSData().execute()
     irs_data = RefineMoveData(previous_stage=previous_stage)
     irs_data.execute()
-
-    print('TODO (reshape_data): Add a reasonable amount of zeroes to dataset to represent non-edges -- maybe just add counties in a specific radius?')
-
 
 ##########==========##########==========##########==========##########==========

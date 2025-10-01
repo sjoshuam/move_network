@@ -64,26 +64,7 @@ class RefineCensusData(RefineData):
             data[i] = pd.concat(data[i],axis='columns')
         data = pd.concat(data.values(),axis='rows').sort_index()
         return data
-
-    def load_data(self):
-        '''Read in census file and process'''
-
-        # Evaluate initial status
-        file_urls = [(i, self.roster[i]['file']) for i in self.roster.keys()]
-
-        # iterate through raw data files
-        self.data = utilities.run_in_parallel(
-            iterable=file_urls,
-            mapper=self.load_data_mapper,
-            reducer=self.load_data_reducer,
-            )
-        self.data = self.data.reset_index()
-        
-        ## Evaluate final status
-        self.status['load_data'] = True
-        print(self)
-
-        return self
+    
 
     def remove_defects(self):
         '''remove data defects -- types, missing, outliers, etc.'''
@@ -234,6 +215,10 @@ class RefineCensusData(RefineData):
         self.data = self.data[sorted(self.data.columns)]
         self.data = self.data.set_index(['year','id_county']).sort_index()
 
+        # update status
+        self.status['derive_data'] = True
+        print(self)
+
         ## write data to disk
         data_url = 'output/census_data.pkl'
         with open(data_url, 'wb') as conn:
@@ -241,18 +226,17 @@ class RefineCensusData(RefineData):
         self.data_url = data_url
         self.data = None
 
-        # update status
-        self.status['derive_data'] = True
-        print(self)
-
         return self
-
+    
+    def execute(self):
+        self.get_data_dict('acs_dict').load_data().remove_defects().derive_data()
+        return self
 
 ##### TEST KEY CLASS
 if __name__ == '__main__':
     previous_stage = get_census_data()
     census_data = RefineCensusData(previous_stage=previous_stage)
-    census_data.get_data_dict('acs_dict').execute()
+    census_data.execute()
 
 
 ##########==========##########==========##########==========##########==========

@@ -9,14 +9,16 @@ settings = Settings()
 from move_net_pack.m03_define_utilities import Utilities
 utilities = Utilities()
 
-## import module specific utilities
+## import module-specific utilities: get_data
 from move_net_pack.get_data.m11_get_census_data import get_census_data
 from move_net_pack.get_data.m12_get_move_data import GetIRSData
-from move_net_pack.get_data.m13_get_geography_data import GetGeoData
+from move_net_pack.get_data.m13_get_geo_data import GetGeoData
 from move_net_pack.get_data.m14_get_polity_data import GetPolityData
 
+## import module-specific utilities: refine_data
 from move_net_pack.refine_data.m21_refine_census_data import RefineCensusData
 from move_net_pack.refine_data.m22_refine_move_data import RefineMoveData
+from move_net_pack.refine_data.m23_refine_geo_data import RefineGeoData
 
 
 ##### DEFINE TOP-LEVEL CLASS
@@ -58,10 +60,16 @@ class MoveNetwork:
         assert self.status['get_data'], 'ERROR: run get_data() first'
 
         self.census_data = RefineCensusData(previous_stage=self.census_data)
-        self.census_data.get_data_dict('acs_dict').execute()
+        self.census_data.execute()
 
-        self.census_data = RefineMoveData(previous_stage=self.irs_data)
-        self.census_data.get_data_dict('soi_dict').execute()
+        self.irs_data = RefineMoveData(previous_stage=self.irs_data)
+        self.irs_data.execute()
+
+        self.geo_data = RefineGeoData(previous_stage=self.geo_data)
+        self.geo_data.execute()
+
+        #self.polity_data = RefinePolityData(previous_stage=self.polity_data)
+        #self.polity_data.execute() ## Not built yet (Kanban Item #24)
 
         self.status['refine_data'] = True
         return self

@@ -66,10 +66,26 @@ class RefineData(abc.ABC):
         return '\n'.join(msg)
         
 
-    @abc.abstractmethod
     def load_data(self):
-        '''Process data files'''
+        '''Read in census file and process'''
+
+        # Evaluate initial status
+        file_urls = [(i, self.roster[i]['file']) for i in self.roster.keys()]
+
+        # iterate through raw data files
+        self.data = utilities.run_in_parallel(
+            iterable=file_urls,
+            mapper=self.load_data_mapper,
+            reducer=self.load_data_reducer,
+            )
+        self.data = self.data.reset_index()
+        
+        ## Evaluate final status
+        self.status['load_data'] = True
+        print(self)
+
         return self
+
 
     @abc.abstractmethod
     def remove_defects(self):

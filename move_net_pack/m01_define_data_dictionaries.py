@@ -50,6 +50,8 @@ tiger_dict = {
         ('AWATER'  , 'area_water' , 'km2'     , 'sum'   , int),
         ('INTPTLAT', 'coords_lat' , 'degrees' , 'id'    , float),
         ('INTPTLON', 'coords_lon' , 'degrees' , 'id'    , float),
+        ('geometry', 'geometry'   , 'shapes'  ,'shape'  , None),
+        ('year'    , 'year'       , 'years'   ,'id'     , int),
     ]
 }
 
@@ -62,7 +64,8 @@ mit_dict = {
         ('county_fips'   , 'fips_county', 'counties', 'id' , int),
         ('party'         , 'party_name' , 'parties' , 'id' , str),
         ('candidatevotes', 'party_votes', 'persons' , 'sum', int),
-        ('totalvotes'    , 'total_votes', 'persons' , 'sum', int), 
+        ('totalvotes'    , 'total_votes', 'persons' , 'sum', int),
+        ('year'          , 'year'       , 'years'   ,'id'  , int),
     ]
 }
 

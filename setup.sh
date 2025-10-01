@@ -43,7 +43,8 @@ source env/bin/activate
 pip install pip --upgrade --no-input #--quiet
 
 if [ ! -e requirements.txt ]; then
-    pip install pandas pyspark igraph dash scikit-learn --no-input #--quiet
+    pip install pandas pyspark scikit-learn dash --no-input #--quiet
+    pip igraph geopandas geopy --no-input #--quiet
     pip install torch torchvision torch-geometric --no-input #--quiet
     pip install --upgrade certify #--quiet
     pip freeze > requirements.txt
