@@ -119,7 +119,7 @@ class RefineMoveData(RefineData):
         for i in ['y1_','y2_']:
             self.data.columns = [j.replace(i, '') for j in self.data.columns]
             self.data = self.data.merge(
-                right = self.state_dict.drop(columns='name_state'),
+                right = self.state_dict.drop(columns=['name_state', 'use']),
                 how = 'left', on='fips_state')
             self.data = self.data.rename(columns={'id_state':(i+'id_state')})
             self.data[i+'id_county'] = self.data[i+'id_state'] + self.data['fips_county']

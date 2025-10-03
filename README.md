@@ -61,9 +61,9 @@ If a major US metro area declined:
   + [X] 23 refine_geo_data.py
   + [ ] 24 refine_polity_data.py (after MVP)
   + [ ] 25 refine_climate_data.py (after MVP)
-30. make_object
-  + [-] 31 compile_node_data.py
-  + [ ] 32 compile_edge_data.py
+30. compile_objects
+  + [-] 31 compile_nodes.py
+  + [ ] 32 compile_edges_data.py
 40. describe_object
   + [ ] 41 describe_node.py
   + [ ] 42 describe_edge.py

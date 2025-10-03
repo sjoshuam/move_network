@@ -84,7 +84,7 @@ class RefineGeoData(RefineData):
 
         # generate ids and set as index
         self.data = self.data.merge(
-            right=self.state_dict.drop(columns='name_state'),
+            right=self.state_dict.drop(columns=['name_state', 'use']),
             how='left', on='fips_state'
         )
         self.data['id_county'] = self.data['id_state'] +self.data['fips_county']
@@ -141,6 +141,19 @@ class RefineGeoData(RefineData):
             )
         distances = distances[distances.index]
 
+        ## reshape data to match other (long-wise) datasets
+        distances = pd.melt(
+            distances.reset_index(),
+            id_vars='id_county',
+            var_name='y2_id_county',
+            value_name='distance_mi',
+        )
+        distances['id_edge'] = distances['id_county'] + '-' +\
+            distances['y2_id_county']
+        distances = distances.rename(columns={'id_county':'y1_id_county'})
+        distances['year'] = 2011
+        distances = distances.set_index(['year', 'id_edge'])
+
         # write save distance matrix
         url = 'output/county_distance.pkl'
         with open(url, 'wb') as conn:
@@ -149,7 +162,12 @@ class RefineGeoData(RefineData):
         self.data['county_distance'] = url
         
         # evaluate final status
-        print('[DISTANCES]\n', distances.iloc[0:5, 0:5])
+        @utilities.govern_print_verbosity
+        @staticmethod
+        def distance_print(d=distance):
+            print('[DISTANCES]\n', distances.iloc[0:5, 0:5])
+
+        distance_print()
         return self
     
     def execute(geo_data):

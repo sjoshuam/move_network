@@ -7,7 +7,7 @@ from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
 # import built-in packages
-import certifi, pathlib, requests, time
+import certifi, pathlib, requests, time, abc
 
 # import utilities
 from move_net_pack.m03_define_utilities import Utilities
@@ -15,7 +15,7 @@ utilities = Utilities()
 
 ##### DEFINE AN ABSTRACT CLASS FOR RETRIEVING DATA FROM THE INTERNET
 
-class GetData():
+class GetData(abc.ABC):
     '''Define an abstract class for retrieving data from the web'''
 
     def __init__(

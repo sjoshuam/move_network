@@ -5,21 +5,24 @@
 from move_net_pack.m02_define_settings import Settings
 settings = Settings()
 
-## import general utilities
+# import general utilities
 from move_net_pack.m03_define_utilities import Utilities
 utilities = Utilities()
 
-## import module-specific utilities: get_data
+# import module-specific utilities: get_data
 from move_net_pack.get_data.m11_get_census_data import get_census_data
 from move_net_pack.get_data.m12_get_move_data import GetIRSData
 from move_net_pack.get_data.m13_get_geo_data import GetGeoData
 from move_net_pack.get_data.m14_get_polity_data import GetPolityData
 
-## import module-specific utilities: refine_data
+# import module-specific utilities: refine_data
 from move_net_pack.refine_data.m21_refine_census_data import RefineCensusData
 from move_net_pack.refine_data.m22_refine_move_data import RefineMoveData
 from move_net_pack.refine_data.m23_refine_geo_data import RefineGeoData
 
+# import module-specific utilities: compile_objects
+from move_net_pack.compile_objects.m31_compile_nodes import CompileNodes
+from move_net_pack.compile_objects.m32_compile_edges import CompileEdges
 
 ##### DEFINE TOP-LEVEL CLASS
 
@@ -74,9 +77,15 @@ class MoveNetwork:
         self.status['refine_data'] = True
         return self
 
-    def make_object(self):
+    def compile_objects(self):
         '''Stage 3.0: Make Object'''
         assert self.status['refine_data'], 'ERROR: run refine_data() first'
+
+        self.nodes = CompileNodes(
+            roster=[self.census_data, self.geo_data]).execute()
+        
+        self.nodes = CompileEdges(
+            roster=[self.irs_data, self.geo_data]).execute()
 
         self.status['make_object'] = True
         return None
@@ -108,6 +117,7 @@ if __name__ == '__main__':
     move_network = MoveNetwork()
     move_network.get_data()
     move_network.refine_data()
+    move_network.compile_objects()
     print(move_network)
 
 
